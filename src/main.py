@@ -1,6 +1,7 @@
 import sys
+
 from PySide6 import QtWidgets
-from modules.GUI import GUI
+from src.modules.GUI import GUI
 
 
 if __name__ == "__main__":
