@@ -18,7 +18,8 @@ A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built 
 ```text
 yt_dlp_fe/
 ├── modules/
-│   └── GUI.py          # Main GUI widget (QWidget) and layout
+│   ├── GUI.py          # Main GUI widget (QWidget) and layout
+|   └── runner.py       # Button logic
 ├── main.py               # Application entry point
 ├── requirements.txt       # Python dependencies
 ├── .gitignore
