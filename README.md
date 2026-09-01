@@ -39,15 +39,14 @@ Exact pinned versions are listed in `requirements.txt`.
 
    ```bash
     git clone https://github.com/AlessVolpe/yt_dlp_fe.git
-    git clone https://github.com/AlessVolpe/yt_dlp_fe.git
-   cd yt_dlp_fe
+    cd yt_dlp_fe
    ```
 
 2. Create and activate a virtual environment:
 
    ```bash
-   python -m venv .venv
-   source .venv/bin/activate      # Windows: .venv\Scripts\activate
+    python -m venv .venv
+    source .venv/bin/activate      # Windows: .venv\Scripts\activate
    ```
 
 3. Install dependencies:
