@@ -1,5 +1,5 @@
 from PySide6 import QtCore, QtWidgets
-from .runner import Runner
+from modules.runner import Runner
 
 class GUI(QtWidgets.QWidget):
     """
