@@ -15,7 +15,7 @@ A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built 
 
 ## Project Structure
 
-```
+```text
 yt_dlp_fe/
 ├── modules/
 │   └── GUI.py          # Main GUI widget (QWidget) and layout
@@ -36,18 +36,22 @@ Exact pinned versions are listed in `requirements.txt`.
 ## Installation
 
 1. Clone the repository:
+
    ```bash
-   git clone https://github.com/<your-username>/yt_dlp_fe.git
+    git clone https://github.com/AlessVolpe/yt_dlp_fe.git
+    git clone https://github.com/AlessVolpe/yt_dlp_fe.git
    cd yt_dlp_fe
    ```
 
 2. Create and activate a virtual environment:
+
    ```bash
    python -m venv .venv
    source .venv/bin/activate      # Windows: .venv\Scripts\activate
    ```
 
 3. Install dependencies:
+
    ```bash
    pip install -r requirements.txt
    ```
@@ -73,4 +77,10 @@ python main.py
 
 ## License
 
-Add your license of choice here (e.g. MIT).
+Copyright (c) 2026 Alessandro Volpe
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
