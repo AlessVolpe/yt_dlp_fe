@@ -1,10 +1,12 @@
 from PySide6 import QtCore, QtWidgets
-from src.modules.runner import Runner
+from .runner import Runner
 
 class GUI(QtWidgets.QWidget):
     """
         Main GUI class for the application
     """
+
+    
     def __init__(self):
         super().__init__()
         self.setWindowTitle("YT-DLP UI")
@@ -18,6 +20,7 @@ class GUI(QtWidgets.QWidget):
 
         self.audio_only_button = QtWidgets.QPushButton("Download Audio Only", self)
         self.video_button = QtWidgets.QPushButton("Download Video", self)
+        self.root_folder = QtWidgets.QPushButton("Select Download Directory", self)
 
         # Set up the layout
         self.main_layout = QtWidgets.QGridLayout(self)
@@ -28,7 +31,11 @@ class GUI(QtWidgets.QWidget):
             alignment=QtCore.Qt.AlignmentFlag.AlignHCenter
             )
         self.main_layout.addWidget(
-            self.dialog_box, 1, 0, 1, 2,
+            self.root_folder, 0, 2,
+            alignment=QtCore.Qt.AlignmentFlag.AlignHCenter
+            )
+        self.main_layout.addWidget(
+            self.dialog_box, 1, 0, 1, 3,
             alignment=QtCore.Qt.AlignmentFlag.AlignHCenter
             )
         self.main_layout.addWidget(
@@ -36,9 +43,10 @@ class GUI(QtWidgets.QWidget):
             alignment=QtCore.Qt.AlignmentFlag.AlignHCenter
             )
         self.main_layout.addWidget(
-            self.video_button, 2, 1,
+            self.video_button, 2, 2,
             alignment=QtCore.Qt.AlignmentFlag.AlignHCenter
             )
+
 
         # Set element sizes
         # (temporary solution, will be replaced with a more dynamic layout in the future)
@@ -46,6 +54,7 @@ class GUI(QtWidgets.QWidget):
         self.dialog_box.setFixedSize(600, 200)
         self.audio_only_button.setFixedSize(200, 50)
         self.video_button.setFixedSize(200, 50)
+        self.root_folder.setFixedSize(200, 30)
 
         self.dialog_box.setReadOnly(True)
 
@@ -59,4 +68,9 @@ class GUI(QtWidgets.QWidget):
             lambda: Runner(
                 self.line_edit.text(),
                 "video", self).on_video_button_click()
+            )
+        self.root_folder.clicked.connect(
+            lambda: Runner(
+                self.line_edit.text(),
+                "root_folder", self).open_file_dialog()
             )
