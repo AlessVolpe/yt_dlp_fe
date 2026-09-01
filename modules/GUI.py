@@ -1,6 +1,5 @@
-import subprocess
-from time import sleep
 from PySide6 import QtCore, QtWidgets
+from modules.runner import Runner
 
 class GUI(QtWidgets.QWidget):
     """
@@ -14,7 +13,7 @@ class GUI(QtWidgets.QWidget):
         # Set up gui elements
         self.line_edit = QtWidgets.QLineEdit(self)
         self.line_edit.setPlaceholderText("Enter URL here...")
-        
+
         self.dialog_box = QtWidgets.QPlainTextEdit(self)
 
         self.audio_only_button = QtWidgets.QPushButton("Download Audio Only", self)
@@ -23,7 +22,7 @@ class GUI(QtWidgets.QWidget):
         # Set up the layout
         self.main_layout = QtWidgets.QGridLayout(self)
         self.main_layout.setContentsMargins(10, 10, 10, 10)
-        
+
         self.main_layout.addWidget(
             self.line_edit, 0, 0, 1, 2,
             alignment=QtCore.Qt.AlignmentFlag.AlignHCenter
@@ -42,6 +41,7 @@ class GUI(QtWidgets.QWidget):
             )
 
         # Set element sizes
+        # (temporary solution, will be replaced with a more dynamic layout in the future)
         self.line_edit.setFixedSize(400, 30)
         self.dialog_box.setFixedSize(600, 200)
         self.audio_only_button.setFixedSize(200, 50)
@@ -50,24 +50,13 @@ class GUI(QtWidgets.QWidget):
         self.dialog_box.setReadOnly(True)
 
         # Connect button click events to their respective slot functions
-        self.audio_only_button.clicked.connect(self.on_audio_only_button_click)
-        self.video_button.clicked.connect(self.on_video_button_click)
-
-
-    @QtCore.Slot()
-    def on_audio_only_button_click(self):
-        """
-            Slot function to handle audio only button click event.
-        """
-        with subprocess.Popen('echo "Downloading audio..."', shell=True):
-            self.dialog_box.appendPlainText("Downloading audio...")
-
-
-
-    @QtCore.Slot()
-    def on_video_button_click(self):
-        """
-            Slot function to handle video button click event.
-        """
-        with subprocess.Popen('echo "Downloading video..."', shell=True):
-            self.dialog_box.appendPlainText("Downloading video...")
+        self.audio_only_button.clicked.connect(
+            lambda: Runner(
+                self.line_edit.text(),
+                "audio", self).on_audio_only_button_click()
+            )
+        self.video_button.clicked.connect(
+            lambda: Runner(
+                self.line_edit.text(),
+                "video", self).on_video_button_click()
+            )
