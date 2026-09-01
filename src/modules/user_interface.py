@@ -1,12 +1,11 @@
 from PySide6 import QtCore, QtWidgets
 from modules.runner import Runner
 
-class GUI(QtWidgets.QWidget):
+class UserInterface(QtWidgets.QWidget):
     """
         Main GUI class for the application
     """
 
-    
     def __init__(self):
         super().__init__()
         self.setWindowTitle("YT-DLP UI")
