@@ -39,7 +39,8 @@ yt_dlp_fe/
 - Python 3.9+
 - [PySide6](https://pypi.org/project/PySide6/)
 - [yt-dlp](https://pypi.org/project/yt-dlp/) — must be reachable on your `PATH` as the `yt-dlp` command, since it's invoked via subprocess
-- [FFmpeg](https://ffmpeg.org/) is recommended alongside yt-dlp for format conversion / audio extraction
+- [FFmpeg](https://ffmpeg.org/) is recommended alongside yt-dlp for format conversion / audio extraction (extremely optional, 
+not necessary for the application  to work)
 
 See `requirements.txt` for pinned versions.
 
