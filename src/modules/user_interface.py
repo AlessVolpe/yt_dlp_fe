@@ -1,7 +1,6 @@
-import subprocess
-from PySide6 import QtCore, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 
-from modules import runner
+from config.constants import ICON_PATH, SVG_PATH
 from modules.runner import Runner
 
 
@@ -13,6 +12,7 @@ class UserInterface(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("yt-dlp ui")
+        self.setWindowIcon(QtGui.QIcon(str(SVG_PATH)))
         self.setMinimumSize(480, 420)
         self.resize(480, 460)
 

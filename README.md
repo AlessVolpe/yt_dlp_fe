@@ -19,6 +19,8 @@ A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built 
 ```
 yt_dlp_fe/
 ├── src/
+│   ├── config/
+│   │   └── constants.py         # Constants: a library of fixed values (e.g. icon paths)
 │   ├── modules/
 │   │   ├── runner.py            # Runner: builds and runs the yt-dlp subprocess calls
 │   │   └── user_interface.py    # UserInterface: main GUI window
