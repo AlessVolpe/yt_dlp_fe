@@ -1,4 +1,4 @@
-# yt-dlp Front End
+# YT-DLP Front End
 
 A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built with [PySide6](https://doc.qt.io/qtforpython-6/) (Qt for Python). Paste a URL, pick a destination, and download audio or video.
 
