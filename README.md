@@ -1,58 +1,62 @@
 # yt-dlp Front End
 
-A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built with [PySide6](https://doc.qt.io/qtforpython-6/) (Qt for Python). Paste a URL, pick audio or video, and go.
+A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built with [PySide6](https://doc.qt.io/qtforpython-6/) (Qt for Python). Paste a URL, pick a destination, and download audio or video.
 
 ## Status
 
-🚧 **Work in progress.** The interface is functional — URL input, a log window, and audio/video buttons all work — but the download actions are currently stubbed out (they echo a status message rather than invoking yt-dlp). Actual download logic is coming next.
+🚧 **Early development.** The interface is fully built out and download requests are now wired to real `yt-dlp` subprocess calls (previously these were placeholder echoes). Packaging via PyInstaller (`main.spec`) is also in place for building a standalone executable.
 
 ## Features
 
-- Simple, single-window Qt interface
+- Single-window Qt interface with a grouped Source / Activity / Actions layout
 - URL input field
-- Read-only log/output panel for status messages
-- Separate **Download Audio Only** and **Download Video** actions
+- Destination folder picker ("Change") — downloads are organized into `DLP_AUDIO/` and `DLP_VIDEO/` subfolders inside the chosen directory
+- Separate **Audio only** and **Download video** actions, each shelling out to `yt-dlp`
+- Read-only activity log with an Idle / Downloading status badge
 
 ## Project Structure
 
-```text
+```
 yt_dlp_fe/
 ├── src/
-│   ├── modules/      
-│   │   ├── GUI.py          # Main GUI widget (QWidget) and layout
-│   │   └── runner.py       # Button logic
-│   └── main.py         # Application entry point
-├── requirements.txt    # Python dependencies
+│   ├── modules/
+│   │   ├── runner.py            # Runner: builds and runs the yt-dlp subprocess calls
+│   │   └── user_interface.py    # UserInterface: main GUI window
+│   └── main.py                   # Application entry point
+├── asset/                         # Icons / static resources (e.g. for packaging)
+├── requirements.txt
+├── main.spec                      # PyInstaller build spec
 ├── .gitignore
 └── README.md
+
+# Generated / git-ignored, not tracked:
+# .venv/, build/, dist/, .vscode/
 ```
 
 ## Requirements
 
 - Python 3.9+
 - [PySide6](https://pypi.org/project/PySide6/)
-- [yt-dlp](https://pypi.org/project/yt-dlp/) (for the upcoming download integration)
+- [yt-dlp](https://pypi.org/project/yt-dlp/) — must be reachable on your `PATH` as the `yt-dlp` command, since it's invoked via subprocess
+- [FFmpeg](https://ffmpeg.org/) is recommended alongside yt-dlp for format conversion / audio extraction
 
-Exact pinned versions are listed in `requirements.txt`.
+See `requirements.txt` for pinned versions.
 
 ## Installation
 
 1. Clone the repository:
-
    ```bash
-    git clone https://github.com/AlessVolpe/yt_dlp_fe.git
-    cd yt_dlp_fe
+   git clone https://github.com/<your-username>/yt_dlp_fe.git
+   cd yt_dlp_fe
    ```
 
 2. Create and activate a virtual environment:
-
    ```bash
-    python -m venv .venv
-    source .venv/bin/activate      # Windows: .venv\Scripts\activate
+   python -m venv .venv
+   source .venv/bin/activate      # Windows: .venv\Scripts\activate
    ```
 
 3. Install dependencies:
-
    ```bash
    pip install -r requirements.txt
    ```
@@ -62,17 +66,27 @@ Exact pinned versions are listed in `requirements.txt`.
 Run the app from the project root:
 
 ```bash
-python main.py
+python src/main.py
 ```
 
 1. Paste a video/audio URL into the input field.
-2. Click **Download Audio Only** or **Download Video**.
-3. Progress/status messages appear in the log panel below the input.
+2. Click **Change** to pick a destination folder (defaults to your system Downloads folder).
+3. Click **Audio only** or **Download video**.
+4. Progress/status messages appear in the activity log, with the badge switching to "Downloading...".
+
+### Building a standalone executable
+
+A PyInstaller spec is included:
+
+```bash
+pyinstaller main.spec
+```
+
+The build output lands in `build/` and `dist/` (both git-ignored).
 
 ## Roadmap
 
-- [ ] Wire the buttons up to real `yt-dlp` calls
-- [ ] Stream download progress into the log panel
+- [ ] Stream real-time yt-dlp progress into the log panel instead of a single log line
 - [ ] Basic URL validation and error handling
 - [ ] Output/format/quality selection
 
