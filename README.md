@@ -79,16 +79,6 @@ python src/main.py
 3. Click **Audio only** or **Download video**.
 4. Progress/status messages appear in the activity log, with the badge switching to "Downloading...".
 
-### Building a standalone executable
-
-A PyInstaller spec is included:
-
-```bash
-pyinstaller main.spec
-```
-
-The build output lands in `build/` and `dist/` (both git-ignored).
-
 ## Roadmap
 
 - [ ] Selector for single video/playlist
