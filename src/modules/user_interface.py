@@ -1,6 +1,6 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from config.constants import ICON_PATH, SVG_PATH, PNG_PATH
+from config.constants import ICON_PATH
 from modules.runner import Runner
 
 
