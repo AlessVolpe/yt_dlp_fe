@@ -54,6 +54,13 @@ class UserInterface(QtWidgets.QWidget):
         self.url_input.setObjectName("urlInput")
         self.url_input.setFixedHeight(38)
 
+        self.isPlaylistButton = QtWidgets.QCheckBox("Is it a Playlist?", self)
+        self.isPlaylistButton.setObjectName("isPlaylistButton")
+        self.isPlaylistButton.setChecked(False)
+        self.isPlaylistButton.stateChanged.connect(
+            lambda: Runner(gui=self).is_playlist_check(self.isPlaylistButton.isChecked())
+        )
+
         location_row = QtWidgets.QHBoxLayout()
         location_row.setContentsMargins(2, 4, 2, 0)
 
@@ -65,11 +72,7 @@ class UserInterface(QtWidgets.QWidget):
         change_button = QtWidgets.QPushButton("Change", self)
         change_button.setObjectName("linkButton")
         change_button.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
-        change_button.clicked.connect(
-            lambda: Runner(
-                self.url_input.text(),
-                "root_folder", self).open_file_dialog()
-        )
+        change_button.clicked.connect(lambda: Runner(gui=self).open_file_dialog())
 
         location_row.addWidget(self.location_label)
         location_row.addStretch()
@@ -77,6 +80,7 @@ class UserInterface(QtWidgets.QWidget):
 
         layout.addWidget(label)
         layout.addWidget(self.url_input)
+        layout.addWidget(self.isPlaylistButton)
         layout.addLayout(location_row)
 
         return section

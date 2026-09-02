@@ -7,36 +7,52 @@ class Runner(QtCore.QObject):
     """
         Class to handle the download process.
     """
-
-    def __init__(self, url, download_type, gui):
+    def __init__(self, gui, url = None, download_type = None):
         super().__init__()
+        self.gui = gui
         self.url = url
         self.download_type = download_type
-        self.gui = gui
         self.selected_directory = self.gui.download_directory
-        self.filename = url.split("=")[-1]  # Sets filename to the unique yt video ID
+        self.is_playlist = False
+
+
+    @QtCore.Slot()
+    def is_playlist_check(self, state):
+        """
+            Slot function to check if a playlist is provided.
+        """
+        self.is_playlist = state
+
 
     @QtCore.Slot()
     def on_audio_only_button_click(self):
         """
             Slot function to handle audio only button click event.
         """
-        cmd = f"yt-dlp -f {self.url} -o {self.selected_directory}/DLP_AUDIO/{self.filename}.mp4"
+        cmd = f"yt-dlp -f {self.url} -o {self.selected_directory}/DLP_AUDIO/{self.url.split("=")[-1]}.mp4"
+        if self.is_playlist:
+            cmd += " --yes-playlist"
+
         self._set_status("Downloading...")
         with subprocess.Popen(cmd, shell=True):
             self.gui.dialog_box.appendPlainText("Downloading audio...")
         self._set_status("Idle")
+
 
     @QtCore.Slot()
     def on_video_button_click(self):
         """
             Slot function to handle video button click event.
         """
-        cmd = f"yt-dlp -f {self.url} -o {self.selected_directory}/DLP_VIDEO/{self.filename}.mp4"
+        cmd = f"yt-dlp -f {self.url} -o {self.selected_directory}/DLP_VIDEO/{self.url.split("=")[-1]}.mp4"
+        if self.is_playlist:
+            cmd += " --yes-playlist"
+
         self._set_status("Downloading...")
         with subprocess.Popen(cmd, shell=True):
             self.gui.dialog_box.appendPlainText("Downloading video...")
         self._set_status("Idle")
+
 
     @QtCore.Slot()
     def open_file_dialog(self):
