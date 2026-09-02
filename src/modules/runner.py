@@ -1,6 +1,5 @@
-import os
 import subprocess
-from fileinput import filename
+
 
 from PySide6 import QtCore, QtWidgets
 
@@ -15,7 +14,7 @@ class Runner(QtCore.QObject):
         self.url = url
         self.download_type = download_type
         self.gui = gui
-        self.selected_directory = self.gui.selected_directory
+        self.selected_directory = self.gui.download_directory
         self.filename = url.split("=")[-1] # Sets filename to the unique yt video ID
 
 
