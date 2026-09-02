@@ -1,5 +1,6 @@
 import os
 import subprocess
+from fileinput import filename
 
 from PySide6 import QtCore, QtWidgets
 
@@ -14,7 +15,8 @@ class Runner(QtCore.QObject):
         self.url = url
         self.download_type = download_type
         self.gui = gui
-        self.selected_directory = None
+        self.selected_directory = self.gui.selected_directory
+        self.filename = url.split("=")[-1] # Sets filename to the unique yt video ID
 
 
     @QtCore.Slot()
@@ -22,13 +24,11 @@ class Runner(QtCore.QObject):
         """
             Slot function to handle audio only button click event.
         """
-        if self.selected_directory and os.path.isdir(f"{self.selected_directory}/DLP_AUDIO"):
-            os.mkdir(f"{self.selected_directory}/DLP_AUDIO")
-
-        cmd: str = f"yt-dlp -f bestaudio {self.url}"
+        cmd = f"yt-dlp -f {self.url} -o {self.selected_directory}/DLP_AUDIO/{self.filename}.mp4"
+        self._set_status("Downloading...")
         with subprocess.Popen(cmd, shell=True):
             self.gui.dialog_box.appendPlainText("Downloading audio...")
-
+        self._set_status("Idle")
 
 
     @QtCore.Slot()
@@ -36,12 +36,11 @@ class Runner(QtCore.QObject):
         """
             Slot function to handle video button click event.
         """
-        if self.selected_directory and os.path.isdir(f"{self.selected_directory}/DLP_VIDEO"):
-            os.mkdir(f"{self.selected_directory}/DLP_VIDEO")
-
-        cmd: str = f"yt-dlp -f bestvideo+bestaudio {self.url}"
+        cmd = f"yt-dlp -f {self.url} -o {self.selected_directory}/DLP_VIDEO/{self.filename}.mp4"
+        self._set_status("Downloading...")
         with subprocess.Popen(cmd, shell=True):
             self.gui.dialog_box.appendPlainText("Downloading video...")
+        self._set_status("Idle")
 
 
     @QtCore.Slot()
@@ -56,6 +55,11 @@ class Runner(QtCore.QObject):
 
         if dialog.exec():
             self.selected_directory = dialog.selectedFiles()[0]
-            self.gui.dialog_box.appendPlainText(
-                f"Selected download directory: {self.selected_directory}"
-                )
+            self.gui.location_label.setText(self.selected_directory)
+
+
+    def _set_status(self, text):
+        """
+            Update the status badge text.
+        """
+        self.gui.status_badge.setText(text)
