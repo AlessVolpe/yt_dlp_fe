@@ -44,6 +44,8 @@ See `requirements.txt` for pinned versions.
 
 ## Installation
 
+### N.B.: The application will be released as a portable `.exe` or packaged nonetheless
+
 1. Clone the repository:
    ```bash
    git clone https://github.com/<your-username>/yt_dlp_fe.git
