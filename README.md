@@ -25,12 +25,11 @@ yt_dlp_fe/
 │   └── main.py                   # Application entry point
 ├── asset/                         # Icons / static resources (e.g. for packaging)
 ├── requirements.txt
-├── main.spec                      # PyInstaller build spec
 ├── .gitignore
 └── README.md
 
 # Generated / git-ignored, not tracked:
-# .venv/, build/, dist/, .vscode/
+# .venv/, build/, dist/, .vscode/, main.spec
 ```
 
 ## Requirements
