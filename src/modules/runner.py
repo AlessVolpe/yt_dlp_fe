@@ -1,22 +1,20 @@
 import subprocess
 
-
 from PySide6 import QtCore, QtWidgets
-
 
 
 class Runner(QtCore.QObject):
     """
         Class to handle the download process.
     """
+
     def __init__(self, url, download_type, gui):
         super().__init__()
         self.url = url
         self.download_type = download_type
         self.gui = gui
         self.selected_directory = self.gui.download_directory
-        self.filename = url.split("=")[-1] # Sets filename to the unique yt video ID
-
+        self.filename = url.split("=")[-1]  # Sets filename to the unique yt video ID
 
     @QtCore.Slot()
     def on_audio_only_button_click(self):
@@ -29,7 +27,6 @@ class Runner(QtCore.QObject):
             self.gui.dialog_box.appendPlainText("Downloading audio...")
         self._set_status("Idle")
 
-
     @QtCore.Slot()
     def on_video_button_click(self):
         """
@@ -40,7 +37,6 @@ class Runner(QtCore.QObject):
         with subprocess.Popen(cmd, shell=True):
             self.gui.dialog_box.appendPlainText("Downloading video...")
         self._set_status("Idle")
-
 
     @QtCore.Slot()
     def open_file_dialog(self):
@@ -56,6 +52,11 @@ class Runner(QtCore.QObject):
             self.selected_directory = dialog.selectedFiles()[0]
             self.gui.location_label.setText(self.selected_directory)
 
+    @staticmethod
+    def update_on_startup():
+        cmd = "yt-dlp -U"
+        with subprocess.Popen(cmd, shell=True):
+            pass
 
     def _set_status(self, text):
         """

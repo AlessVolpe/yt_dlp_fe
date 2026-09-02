@@ -1,13 +1,14 @@
 import sys
 
 from PySide6 import QtWidgets
-from modules.user_interface import UserInterface
+
+from modules.progress_window import ProgressWindow
 
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
-
-    widget = UserInterface()
-    widget.show()
+    progress_window = ProgressWindow()
+    progress_window.show()
 
     sys.exit(app.exec())
+

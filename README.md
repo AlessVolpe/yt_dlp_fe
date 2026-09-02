@@ -22,10 +22,11 @@ yt_dlp_fe/
 │   ├── config/
 │   │   └── constants.py         # Constants: a library of fixed values (e.g. icon paths)
 │   ├── modules/
+│   │   ├── progress_window.py   # ProgressWindow: functionally a waiting room to update yt-dlp
 │   │   ├── runner.py            # Runner: builds and runs the yt-dlp subprocess calls
 │   │   └── user_interface.py    # UserInterface: main GUI window
-│   └── main.py                   # Application entry point
-├── asset/                         # Icons / static resources (e.g. for packaging)
+│   └── main.py                  # Application entry point
+├── assets/                       # Icons / static resources (e.g. for packaging)
 ├── requirements.txt
 ├── .gitignore
 └── README.md
@@ -91,7 +92,7 @@ The build output lands in `build/` and `dist/` (both git-ignored).
 ## Roadmap
 
 - [ ] Selector for single video/playlist
-- [ ] Auto-update feature launching the `yt-dlp -U` command
+- [x] Auto-update feature launching the `yt-dlp -U` command
 - [ ] Stream real-time yt-dlp progress into the log panel instead of a single log line
 - [ ] Basic URL validation and error handling
 - [ ] Output/format/quality selection
