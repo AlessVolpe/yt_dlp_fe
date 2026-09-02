@@ -90,6 +90,8 @@ The build output lands in `build/` and `dist/` (both git-ignored).
 
 ## Roadmap
 
+- [ ] Selector for single video/playlist
+- [ ] Auto-update feature launching the `yt-dlp -U` command
 - [ ] Stream real-time yt-dlp progress into the log panel instead of a single log line
 - [ ] Basic URL validation and error handling
 - [ ] Output/format/quality selection
