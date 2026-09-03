@@ -12,11 +12,8 @@ A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built 
 - URL input field
 - Destination folder picker ("Change") - downloads are organized into `DLP_AUDIO/` and `DLP_VIDEO/` subfolders inside the chosen directory
 - Separate **Audio only** and **Download video** actions, each shelling out to `yt-dlp`
+- Automatic format convertion from `.webm` to `.wav` for audio and `.mp4` for video (currently unreliable)
 - Read-only activity log with an Idle / Downloading status badge
-
-## Known Issues
-
-**WIP SECTION**
 
 ## Project Structure
 
@@ -31,11 +28,15 @@ yt_dlp_fe/
 │   │   ├── bll/                     # Business/backend logic
 │   │   │   ├── __init__.py
 │   │   │   ├── format_converter.py
+│   │   │   ├── process_worker.py    # Background QThread: runs a command, logs output live
 │   │   │   └── runner.py            # Runner: builds and runs the yt-dlp subprocess calls
 │   │   ├── guis/                    # GUI windows
 │   │   │   ├── __init__.py
 │   │   │   ├── progress_window.py   # Startup update-check window
 │   │   │   └── user_interface.py    # Main application window
+│   │   ├── loggers/                 # Real-time logging plumbing
+│   │   │   ├── __init__.py
+│   │   │   └── log_handler.py       # Bridges Python `logging` records into a Qt signal
 │   │   └── __init__.py
 │   └── main.py                      # Application entry point
 ├── requirements.txt
@@ -88,7 +89,7 @@ python src/main.py
 
 - [x] Selector for single video/playlist
 - [x] Auto-update feature launching the `yt-dlp -U` command
-- [ ] Stream real-time yt-dlp progress into the log panel instead of a single log line
+- [x] Stream real-time yt-dlp progress into the log panel instead of a single log line
 - [ ] Basic URL validation and error handling
 - [ ] Output/format/quality selection
 
