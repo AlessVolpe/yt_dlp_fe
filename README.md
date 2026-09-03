@@ -6,6 +6,12 @@ A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built 
 
 🚧 **Early development.** The interface is fully built out and download requests are now wired to real `yt-dlp` subprocess calls (previously these were placeholder echoes). Packaging via PyInstaller (`main.spec`) is also in place for building a standalone executable.
 
+### For collaborators
+
+Please I'm trying to keep this repository as clean as possible and I want to ask you to use [conventional branch](https://conventionalbranch.org/) and [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) naming conventions (please only lowercase). PRs must be titled as a commit, giving a comprehensive name for the work done; try to make also a good PR description. Soon I'll try to make the workflows function!
+
+**The scope is (dlpfe-ci) for ci related PRs and commits, (dlpfe) for everything else!**
+
 ## Features
 
 - Single-window Qt interface with a grouped Source / Activity / Actions layout
