@@ -1,9 +1,7 @@
-import time
-
 from PySide6 import QtCore, QtWidgets
 
 from modules.runner import Runner
-from modules.user_interface import UserInterface
+from modules.guis.user_interface import UserInterface
 
 
 class ProgressWindow(QtWidgets.QWidget):
