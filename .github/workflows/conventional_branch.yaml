@@ -21,7 +21,7 @@ jobs:
               print(f"{branch}: ok")
               sys.exit(0)
 
-          types = ", ".join(f"{t['type']}/" for t in spec["types"])
+          types = ", ".join(f"{t['type']}/" for t in spec["types"]) + "ci"
           print(f"::error::'{branch}' does not follow the Conventional Branch "
                 f"specification. Expected <type>/<description>, where type is one "
                 f"of: {types}. See https://conventionalbranch.org/")
