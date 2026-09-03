@@ -8,7 +8,7 @@ class ProcessWorker(QtCore.QThread):
 
     def __init__(self, command, parent=None):
         super().__init__(parent)
-        logger_name = f"{parent.__class__.__name__}-worker"
+        logger_name = f"{parent.__class__.__name__}Worker"
         self._command = command
         self.logger = logging.getLogger(logger_name)
 

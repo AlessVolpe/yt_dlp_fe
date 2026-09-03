@@ -264,7 +264,7 @@ class UserInterface(QtWidgets.QWidget):
         self._log_handler = QtLogHandler()
         self._log_handler.message.connect(self.dialog_box.appendPlainText)
 
-        app_logger = logging.getLogger(__name__)
+        app_logger = logging.getLogger()
         app_logger.setLevel(logging.INFO)
         app_logger.addHandler(self._log_handler)
 
@@ -273,13 +273,11 @@ class UserInterface(QtWidgets.QWidget):
         """
             Connect widget signals to the shared Runner instance.
         """
+        self.runner = Runner(self, self.download_directory)
+
         self.isPlaylistButton.stateChanged.connect(
-            lambda: Runner(self).is_playlist_check(self.isPlaylistButton.isChecked())
+            lambda: self.runner.is_playlist_check(self.isPlaylistButton.isChecked())
         )
-        self.change_button.clicked.connect(lambda: Runner(self).open_file_dialog())
-        self.audio_only_button.clicked.connect(
-            lambda: Runner(self, self.download_directory).on_audio_only_button_click()
-        )
-        self.video_button.clicked.connect(
-            lambda: Runner(self, self.download_directory).on_video_button_click()
-        )
+        self.change_button.clicked.connect(self.runner.open_file_dialog)
+        self.audio_only_button.clicked.connect(self.runner.on_audio_only_button_click)
+        self.video_button.clicked.connect(self.runner.on_video_button_click)

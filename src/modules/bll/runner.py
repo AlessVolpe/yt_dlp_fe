@@ -46,12 +46,13 @@ class Runner(QtCore.QObject):
 
     @QtCore.Slot()
     def _start_download(self, download_type):
+        self.gui.dialog_box.clear()
         url = self.gui.url_input.text()
         filename = url.split("=")[-1]
         download_format = "bestaudio/best" if download_type == "audio" else "bestvideo*+bestaudio/best"
         subfolder = "DLP_AUDIO" if download_type == "audio" else "DLP_VIDEO"
 
-        cmd = f'yt-dlp -f "{download_format}" "{self.selected_directory}/{subfolder}/%(id)s.%(ext)s" "{url}"'
+        cmd = f'yt-dlp -f "{download_format}" -o "{self.selected_directory}/{subfolder}/%(id)s.%(ext)s" "{url}"'
 
         if self.is_playlist:
             cmd += " --yes-playlist"
@@ -61,19 +62,31 @@ class Runner(QtCore.QObject):
         self.gui.video_button.setEnabled(False)
         logger.info(f"Starting {download_type} download: {url}")
 
+        # Store attributes to use AFTER the download finishes
+        self._current_download_type = download_type
+        self._current_filename = filename
+        self._current_subfolder = subfolder
+
         self._worker = ProcessWorker(cmd, parent=self)
         self._worker.finished_process.connect(self._on_download_end)
         self._worker.start()
-
-        FormatConverter(self.gui, download_type, f"{self.selected_directory}/{subfolder}/{filename}")
 
 
     @QtCore.Slot(int)
     def _on_download_end(self, exit_code):
         logger.info(f"Download finished (exit code: {exit_code})")
-        self._set_status("Idle")
-        self.gui.audio_only_button.setEnabled(True)
-        self.gui.video_button.setEnabled(True)
+
+        if exit_code == 0:
+            self.converter = FormatConverter(
+                self.gui,
+                self._current_download_type,
+                f"{self.selected_directory}/{self._current_subfolder}/{self._current_filename}"
+            )
+            self.converter.convert_file()
+        else:
+            self._set_status("Idle")
+            self.gui.audio_only_button.setEnabled(True)
+            self.gui.video_button.setEnabled(True)
 
 
     @QtCore.Slot()
