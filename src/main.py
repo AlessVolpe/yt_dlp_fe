@@ -2,7 +2,7 @@ import sys
 
 from PySide6 import QtWidgets
 
-from guis.progress_window import ProgressWindow
+from modules.guis.progress_window import ProgressWindow
 
 
 if __name__ == "__main__":
