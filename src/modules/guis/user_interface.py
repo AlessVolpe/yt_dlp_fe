@@ -1,7 +1,7 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from config.constants import ICON_PATH
-from modules.runner import Runner
+from bll.runner import Runner
 
 
 class UserInterface(QtWidgets.QWidget):

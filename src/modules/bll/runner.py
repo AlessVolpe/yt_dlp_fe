@@ -2,6 +2,8 @@ import subprocess
 
 from PySide6 import QtCore, QtWidgets
 
+from bll.format_converter import FormatConverter
+
 
 class Runner(QtCore.QObject):
     """
@@ -39,6 +41,10 @@ class Runner(QtCore.QObject):
         self._set_status("Downloading...")
         with subprocess.Popen(cmd, shell=True):
             self.gui.dialog_box.appendPlainText("Downloading audio...")
+
+        file_path = f"{self.selected_directory}/DLP_AUDIO/{self.url.split("=")[-1]}"
+        FormatConverter(self.gui, file_path).convert_audio()
+
         self._set_status("Idle")
 
 
@@ -57,6 +63,10 @@ class Runner(QtCore.QObject):
         self._set_status("Downloading...")
         with subprocess.Popen(cmd, shell=True):
             self.gui.dialog_box.appendPlainText("Downloading video...")
+
+        file_path = f"{self.selected_directory}/DLP_VIDEO/{self.url.split("=")[-1]}"
+        FormatConverter(self.gui, file_path).convert_video()
+
         self._set_status("Idle")
 
 
