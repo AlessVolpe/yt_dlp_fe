@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from PySide6 import QtCore
 
-from bll.process_worker import ProcessWorker
+from modules.bll.process_worker import ProcessWorker
 
 
 logger = logging.getLogger(__name__)

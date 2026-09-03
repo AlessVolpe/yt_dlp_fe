@@ -1,7 +1,7 @@
 from PySide6 import QtCore, QtWidgets
 
-from bll.runner import Runner
-from guis.user_interface import UserInterface
+from modules.bll.runner import Runner
+from modules.guis.user_interface import UserInterface
 
 
 class ProgressWindow(QtWidgets.QWidget):

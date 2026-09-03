@@ -3,8 +3,8 @@ import subprocess
 
 from PySide6 import QtCore, QtWidgets
 
-from bll.format_converter import FormatConverter
-from bll.process_worker import ProcessWorker
+from modules.bll.format_converter import FormatConverter
+from modules.bll.process_worker import ProcessWorker
 
 logger = logging.getLogger(__name__)
 
