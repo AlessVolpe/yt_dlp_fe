@@ -7,12 +7,12 @@ class Runner(QtCore.QObject):
     """
         Class to handle the download process.
     """
-    def __init__(self, gui, url = None, download_type = None):
+    def __init__(self, gui, url = None, download_type = None, download_dir = None):
         super().__init__()
         self.gui = gui
         self.url = url
         self.download_type = download_type
-        self.selected_directory = self.gui.download_directory
+        self.selected_directory = download_dir
         self.is_playlist = False
 
 
@@ -29,7 +29,10 @@ class Runner(QtCore.QObject):
         """
             Slot function to handle audio only button click event.
         """
-        cmd = f"yt-dlp -f {self.url} -o {self.selected_directory}/DLP_AUDIO/{self.url.split("=")[-1]}.mp4"
+        cmd = (
+            f'yt-dlp -f "bestaudio/best" '
+            f'-o "{self.selected_directory}/DLP_AUDIO/%(id)s.%(ext)s" "{self.url}"'
+        )
         if self.is_playlist:
             cmd += " --yes-playlist"
 
@@ -44,7 +47,10 @@ class Runner(QtCore.QObject):
         """
             Slot function to handle video button click event.
         """
-        cmd = f"yt-dlp -f {self.url} -o {self.selected_directory}/DLP_VIDEO/{self.url.split("=")[-1]}.mp4"
+        cmd = (
+            'yt-dlp -f "bestvideo*+bestaudio/best" '
+            f'-o "{self.selected_directory}/DLP_VIDEO/%(id)s.%(ext)s" "{self.url}"'
+        )
         if self.is_playlist:
             cmd += " --yes-playlist"
 

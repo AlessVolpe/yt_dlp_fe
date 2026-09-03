@@ -58,7 +58,7 @@ class UserInterface(QtWidgets.QWidget):
         self.isPlaylistButton.setObjectName("isPlaylistButton")
         self.isPlaylistButton.setChecked(False)
         self.isPlaylistButton.stateChanged.connect(
-            lambda: Runner(gui=self).is_playlist_check(self.isPlaylistButton.isChecked())
+            lambda: Runner(self).is_playlist_check(self.isPlaylistButton.isChecked())
         )
 
         location_row = QtWidgets.QHBoxLayout()
@@ -72,7 +72,7 @@ class UserInterface(QtWidgets.QWidget):
         change_button = QtWidgets.QPushButton("Change", self)
         change_button.setObjectName("linkButton")
         change_button.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
-        change_button.clicked.connect(lambda: Runner(gui=self).open_file_dialog())
+        change_button.clicked.connect(lambda: Runner(self).open_file_dialog())
 
         location_row.addWidget(self.location_label)
         location_row.addStretch()
@@ -143,13 +143,19 @@ class UserInterface(QtWidgets.QWidget):
 
         self.audio_only_button.clicked.connect(
             lambda: Runner(
-                self.url_input.text(),
-                "audio", self).on_audio_only_button_click()
+                gui=self,
+                url=self.url_input.text(),
+                download_type="audio",
+                download_dir=self.download_directory
+            ).on_audio_only_button_click()
         )
         self.video_button.clicked.connect(
             lambda: Runner(
+                self,
                 self.url_input.text(),
-                "video", self).on_video_button_click()
+                "video",
+                self.download_directory
+            ).on_video_button_click()
         )
 
         row.addStretch()
