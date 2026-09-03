@@ -10,40 +10,45 @@ A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built 
 
 - Single-window Qt interface with a grouped Source / Activity / Actions layout
 - URL input field
-- Destination folder picker ("Change") — downloads are organized into `DLP_AUDIO/` and `DLP_VIDEO/` subfolders inside the chosen directory
+- Destination folder picker ("Change") - downloads are organized into `DLP_AUDIO/` and `DLP_VIDEO/` subfolders inside the chosen directory
 - Separate **Audio only** and **Download video** actions, each shelling out to `yt-dlp`
 - Read-only activity log with an Idle / Downloading status badge
+
+## Known Issues
+
+**WIP SECTION**
 
 ## Project Structure
 
 ```
 yt_dlp_fe/
+├── assets/                          # Icons / static resources (e.g. for packaging)
 ├── src/
 │   ├── config/
-│   │   └── constants.py         # Constants: a library of fixed values (e.g. icon paths)
+│   │   ├── __init__.py
+│   │   └── constants.py             # Shared path constants (e.g. ICON_PATH)
 │   ├── modules/
-│   │   ├── progress_window.py   # ProgressWindow: functionally a waiting room to update yt-dlp
-│   │   ├── runner.py            # Runner: builds and runs the yt-dlp subprocess calls
-│   │   └── user_interface.py    # UserInterface: main GUI window
-│   └── main.py                  # Application entry point
-├── assets/                       # Icons / static resources (e.g. for packaging)
+│   │   ├── bll/                     # Business/backend logic
+│   │   │   ├── __init__.py
+│   │   │   ├── format_converter.py
+│   │   │   └── runner.py            # Runner: builds and runs the yt-dlp subprocess calls
+│   │   ├── guis/                    # GUI windows
+│   │   │   ├── __init__.py
+│   │   │   ├── progress_window.py   # Startup update-check window
+│   │   │   └── user_interface.py    # Main application window
+│   │   └── __init__.py
+│   └── main.py                      # Application entry point
 ├── requirements.txt
 ├── .gitignore
 └── README.md
-
-# Generated / git-ignored, not tracked:
-# .venv/, build/, dist/, .vscode/, main.spec
 ```
 
 ## Requirements
 
-- Python 3.9+
-- [PySide6](https://pypi.org/project/PySide6/)
-- [yt-dlp](https://pypi.org/project/yt-dlp/) — must be reachable on your `PATH` as the `yt-dlp` command, since it's invoked via subprocess
-- [FFmpeg](https://ffmpeg.org/) is recommended alongside yt-dlp for format conversion / audio extraction (extremely optional, 
-not necessary for the application  to work)
-
-See `requirements.txt` for pinned versions.
+- Python 3.9+ - I recommend the latest version available
+- [PySide6](https://pypi.org/project/PySide6/) - automatically installed if you're building the project
+- [yt-dlp](https://pypi.org/project/yt-dlp/) - must be reachable on your `PATH` as the `yt-dlp` command, since it's invoked via subprocess
+- [FFmpeg](https://ffmpeg.org/) - must be reachable on your `PATH` as the `ffmpeg` command, since it's invoked via subprocess
 
 ## Installation
 
@@ -81,7 +86,7 @@ python src/main.py
 
 ## Roadmap
 
-- [ ] Selector for single video/playlist
+- [x] Selector for single video/playlist
 - [x] Auto-update feature launching the `yt-dlp -U` command
 - [ ] Stream real-time yt-dlp progress into the log panel instead of a single log line
 - [ ] Basic URL validation and error handling
