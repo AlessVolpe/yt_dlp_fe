@@ -63,7 +63,7 @@ yt_dlp_fe/
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/<your-username>/yt_dlp_fe.git
+   git clone https://github.com/AlessVolpe/yt_dlp_fe.git
    cd yt_dlp_fe
    ```
 
