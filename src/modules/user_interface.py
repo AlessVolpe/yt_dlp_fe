@@ -244,6 +244,10 @@ class UserInterface(QtWidgets.QWidget):
             QPushButton#primaryButton:hover {
                 background-color: #d1492f;
             }
+            QCheckBox {
+                background: transparent;
+                color: #e5533d;
+            }
         """)
 
     @QtCore.Slot()
