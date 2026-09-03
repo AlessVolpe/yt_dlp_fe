@@ -1,14 +1,16 @@
+import logging
+
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from config.constants import ICON_PATH
-from bll.runner import Runner
+from modules.bll.runner import Runner
+from modules.loggers.log_handler import QtLogHandler
 
 
 class UserInterface(QtWidgets.QWidget):
     """
         Main GUI class for the application.
     """
-
     def __init__(self):
         super().__init__()
         self.setWindowTitle("yt-dlp ui")
@@ -22,6 +24,10 @@ class UserInterface(QtWidgets.QWidget):
 
         self._build_ui()
         self._apply_styles()
+        self._setup_logging()
+
+        self._wire_actions()
+
 
     def _build_ui(self):
         """
@@ -36,6 +42,7 @@ class UserInterface(QtWidgets.QWidget):
         root_layout.addWidget(self._build_activity_section())
         root_layout.addWidget(self._build_divider())
         root_layout.addLayout(self._build_actions_row())
+
 
     def _build_source_section(self):
         """
@@ -57,9 +64,6 @@ class UserInterface(QtWidgets.QWidget):
         self.isPlaylistButton = QtWidgets.QCheckBox("Is it a Playlist?", self)
         self.isPlaylistButton.setObjectName("isPlaylistButton")
         self.isPlaylistButton.setChecked(False)
-        self.isPlaylistButton.stateChanged.connect(
-            lambda: Runner(self).is_playlist_check(self.isPlaylistButton.isChecked())
-        )
 
         location_row = QtWidgets.QHBoxLayout()
         location_row.setContentsMargins(2, 4, 2, 0)
@@ -69,14 +73,13 @@ class UserInterface(QtWidgets.QWidget):
         )
         self.location_label.setObjectName("locationLabel")
 
-        change_button = QtWidgets.QPushButton("Change", self)
-        change_button.setObjectName("linkButton")
-        change_button.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
-        change_button.clicked.connect(lambda: Runner(self).open_file_dialog())
+        self.change_button = QtWidgets.QPushButton("Change", self)
+        self.change_button.setObjectName("linkButton")
+        self.change_button.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
 
         location_row.addWidget(self.location_label)
         location_row.addStretch()
-        location_row.addWidget(change_button)
+        location_row.addWidget(self.change_button)
 
         layout.addWidget(label)
         layout.addWidget(self.url_input)
@@ -84,6 +87,7 @@ class UserInterface(QtWidgets.QWidget):
         layout.addLayout(location_row)
 
         return section
+
 
     def _build_activity_section(self):
         """
@@ -123,6 +127,7 @@ class UserInterface(QtWidgets.QWidget):
 
         return section
 
+
     def _build_actions_row(self):
         """
             Build the audio/video action buttons, right-aligned.
@@ -141,28 +146,12 @@ class UserInterface(QtWidgets.QWidget):
             button.setFixedHeight(38)
             button.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
 
-        self.audio_only_button.clicked.connect(
-            lambda: Runner(
-                gui=self,
-                url=self.url_input.text(),
-                download_type="audio",
-                download_dir=self.download_directory
-            ).on_audio_only_button_click()
-        )
-        self.video_button.clicked.connect(
-            lambda: Runner(
-                self,
-                self.url_input.text(),
-                "video",
-                self.download_directory
-            ).on_video_button_click()
-        )
-
         row.addStretch()
         row.addWidget(self.audio_only_button)
         row.addWidget(self.video_button)
 
         return row
+
 
     def _build_divider(self):
         """
@@ -173,6 +162,7 @@ class UserInterface(QtWidgets.QWidget):
         divider.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         divider.setFixedHeight(1)
         return divider
+
 
     def _apply_styles(self):
         """
@@ -250,20 +240,44 @@ class UserInterface(QtWidgets.QWidget):
             QPushButton#primaryButton:hover {
                 background-color: #d1492f;
             }
+            QPushButton:disabled {
+                color: #5f6066;
+                border-color: #2a2b30;
+            }
+            QPushButton#primaryButton:disabled {
+                background-color: #3a2a26;
+                border-color: #3a2a26;
+            }
             QCheckBox {
                 background: transparent;
                 color: #e5533d;
             }
         """)
 
-    @QtCore.Slot()
-    def on_change_directory_click(self):
+
+    def _setup_logging(self):
         """
-            Slot function to handle the "Change" save-location click.
+            Attach a Qt-aware logging handler so log records from anywhere
+            in the app (e.g. the background download worker) stream into
+            the activity log in real time.
         """
-        selected_directory = QtWidgets.QFileDialog.getExistingDirectory(
-            self, "Select download directory", self.download_directory
+        self._log_handler = QtLogHandler()
+        self._log_handler.message.connect(self.dialog_box.appendPlainText)
+
+        app_logger = logging.getLogger()
+        app_logger.setLevel(logging.INFO)
+        app_logger.addHandler(self._log_handler)
+
+
+    def _wire_actions(self):
+        """
+            Connect widget signals to the shared Runner instance.
+        """
+        self.runner = Runner(self, self.download_directory)
+
+        self.isPlaylistButton.stateChanged.connect(
+            lambda: self.runner.is_playlist_check(self.isPlaylistButton.isChecked())
         )
-        if selected_directory:
-            self.download_directory = selected_directory
-            self.location_label.setText(f"Save to: {self.download_directory}")
+        self.change_button.clicked.connect(self.runner.open_file_dialog)
+        self.audio_only_button.clicked.connect(self.runner.on_audio_only_button_click)
+        self.video_button.clicked.connect(self.runner.on_video_button_click)

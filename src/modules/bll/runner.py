@@ -1,21 +1,23 @@
+import logging
 import subprocess
 
 from PySide6 import QtCore, QtWidgets
 
 from bll.format_converter import FormatConverter
+from bll.process_worker import ProcessWorker
 
+logger = logging.getLogger(__name__)
 
 class Runner(QtCore.QObject):
     """
         Class to handle the download process.
     """
-    def __init__(self, gui, url = None, download_type = None, download_dir = None):
+    def __init__(self, gui, download_dir = None):
         super().__init__()
         self.gui = gui
-        self.url = url
-        self.download_type = download_type
         self.selected_directory = download_dir
         self.is_playlist = False
+        self._worker = None
 
 
     @QtCore.Slot()
@@ -31,21 +33,7 @@ class Runner(QtCore.QObject):
         """
             Slot function to handle audio only button click event.
         """
-        cmd = (
-            f'yt-dlp -f "bestaudio/best" '
-            f'-o "{self.selected_directory}/DLP_AUDIO/%(id)s.%(ext)s" "{self.url}"'
-        )
-        if self.is_playlist:
-            cmd += " --yes-playlist"
-
-        self._set_status("Downloading...")
-        with subprocess.Popen(cmd, shell=True):
-            self.gui.dialog_box.appendPlainText("Downloading audio...")
-
-        file_path = f"{self.selected_directory}/DLP_AUDIO/{self.url.split("=")[-1]}"
-        FormatConverter(self.gui, file_path).convert_audio()
-
-        self._set_status("Idle")
+        self._start_download("audio")
 
 
     @QtCore.Slot()
@@ -53,21 +41,52 @@ class Runner(QtCore.QObject):
         """
             Slot function to handle video button click event.
         """
-        cmd = (
-            'yt-dlp -f "bestvideo*+bestaudio/best" '
-            f'-o "{self.selected_directory}/DLP_VIDEO/%(id)s.%(ext)s" "{self.url}"'
-        )
+        self._start_download("video")
+
+
+    @QtCore.Slot()
+    def _start_download(self, download_type):
+        self.gui.dialog_box.clear()
+        url = self.gui.url_input.text()
+        filename = url.split("=")[-1]
+        download_format = "bestaudio/best" if download_type == "audio" else "bestvideo*+bestaudio/best"
+        subfolder = "DLP_AUDIO" if download_type == "audio" else "DLP_VIDEO"
+
+        cmd = f'yt-dlp -f "{download_format}" -o "{self.selected_directory}/{subfolder}/%(id)s.%(ext)s" "{url}"'
+
         if self.is_playlist:
             cmd += " --yes-playlist"
 
         self._set_status("Downloading...")
-        with subprocess.Popen(cmd, shell=True):
-            self.gui.dialog_box.appendPlainText("Downloading video...")
+        self.gui.audio_only_button.setEnabled(False)
+        self.gui.video_button.setEnabled(False)
+        logger.info(f"Starting {download_type} download: {url}")
 
-        file_path = f"{self.selected_directory}/DLP_VIDEO/{self.url.split("=")[-1]}"
-        FormatConverter(self.gui, file_path).convert_video()
+        # Store attributes to use AFTER the download finishes
+        self._current_download_type = download_type
+        self._current_filename = filename
+        self._current_subfolder = subfolder
 
-        self._set_status("Idle")
+        self._worker = ProcessWorker(cmd, parent=self)
+        self._worker.finished_process.connect(self._on_download_end)
+        self._worker.start()
+
+
+    @QtCore.Slot(int)
+    def _on_download_end(self, exit_code):
+        logger.info(f"Download finished (exit code: {exit_code})")
+
+        if exit_code == 0:
+            self.converter = FormatConverter(
+                self.gui,
+                self._current_download_type,
+                f"{self.selected_directory}/{self._current_subfolder}/{self._current_filename}"
+            )
+            self.converter.convert_file()
+        else:
+            self._set_status("Idle")
+            self.gui.audio_only_button.setEnabled(True)
+            self.gui.video_button.setEnabled(True)
 
 
     @QtCore.Slot()
@@ -84,11 +103,13 @@ class Runner(QtCore.QObject):
             self.selected_directory = dialog.selectedFiles()[0]
             self.gui.location_label.setText(self.selected_directory)
 
+
     @staticmethod
     def update_on_startup():
         cmd = "yt-dlp -U"
         with subprocess.Popen(cmd, shell=True):
             pass
+
 
     def _set_status(self, text):
         """
