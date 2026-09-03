@@ -1,0 +1,29 @@
+name: Branch name
+
+on: pull_request
+
+jobs:
+  conventional-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate the branch name
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          curl -sSfLo spec.json https://conventionalbranch.org/v1.1.0/spec.json
+          python3 - <<'PY'
+          import json, os, re, sys
+
+          spec = json.load(open("spec.json"))
+          branch = os.environ["BRANCH"]
+
+          if re.fullmatch(spec["grammar"]["regex"], branch):
+              print(f"{branch}: ok")
+              sys.exit(0)
+
+          types = ", ".join(f"{t['type']}/" for t in spec["types"])
+          print(f"::error::'{branch}' does not follow the Conventional Branch "
+                f"specification. Expected <type>/<description>, where type is one "
+                f"of: {types}. See https://conventionalbranch.org/")
+          sys.exit(1)
+          PY
