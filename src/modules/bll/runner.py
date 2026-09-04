@@ -50,10 +50,9 @@ class Runner(QtCore.QObject):
         download_format = "bestaudio/best" if download_type == "audio" else "bestvideo*+bestaudio/best"
         subfolder = "DLP_AUDIO" if download_type == "audio" else "DLP_VIDEO"
 
-        cmd = f'yt-dlp -f "{download_format}" -o "{self.selected_directory}/{subfolder}/%(id)s.%(ext)s" "{url}"'
-
-        if self.is_playlist:
-            cmd += " --yes-playlist"
+        cmd = self._build_cmd(
+            f'yt-dlp -f "{download_format}"', f"{self.selected_directory}/{subfolder}", url
+        )
 
         self._set_status("Downloading...")
         self.gui.audio_only_button.setEnabled(False)
@@ -74,16 +73,30 @@ class Runner(QtCore.QObject):
         logger.info(f"Download finished (exit code: {exit_code})")
 
         if exit_code == 0:
-            self.converter = FormatConverter(
-                self.gui,
-                self._current_download_type,
-                f"{self.selected_directory}/{self._current_subfolder}/{self._current_filename}"
-            )
-            self.converter.convert_file()
+            if self.is_playlist:
+                pass
+            else:
+                self.converter = FormatConverter(
+                    self.gui,
+                    self._current_download_type,
+                    f"{self.selected_directory}/{self._current_subfolder}/{self._current_filename}"
+                )
+                self.converter.convert_file()
         else:
             self._set_status("Idle")
             self.gui.audio_only_button.setEnabled(True)
             self.gui.video_button.setEnabled(True)
+
+    def _build_cmd(self, cmd, output_path, url) -> str:
+        if self.is_playlist:
+            cmd += " --yes-playlist"
+            output_path += "/%(playlist_index)s/%(id)s.%(ext)s"
+        else:
+            cmd += " --no-playlist"
+            output_path += "/%(id)s.%(ext)s"
+
+        cmd += f' -o "{output_path}" "{url}"'
+        return cmd
 
     @QtCore.Slot()
     def open_file_dialog(self):
