@@ -11,6 +11,7 @@ class UserInterface(QtWidgets.QWidget):
     """
         Main GUI class for the application.
     """
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("yt-dlp ui")
@@ -28,7 +29,6 @@ class UserInterface(QtWidgets.QWidget):
 
         self._wire_actions()
 
-
     def _build_ui(self):
         """
             Build and arrange all widgets in the window.
@@ -42,7 +42,6 @@ class UserInterface(QtWidgets.QWidget):
         root_layout.addWidget(self._build_activity_section())
         root_layout.addWidget(self._build_divider())
         root_layout.addLayout(self._build_actions_row())
-
 
     def _build_source_section(self):
         """
@@ -88,7 +87,6 @@ class UserInterface(QtWidgets.QWidget):
 
         return section
 
-
     def _build_activity_section(self):
         """
             Build the activity log and its status badge.
@@ -127,7 +125,6 @@ class UserInterface(QtWidgets.QWidget):
 
         return section
 
-
     def _build_actions_row(self):
         """
             Build the audio/video action buttons, right-aligned.
@@ -152,7 +149,6 @@ class UserInterface(QtWidgets.QWidget):
 
         return row
 
-
     def _build_divider(self):
         """
             Build a thin horizontal divider between sections.
@@ -162,7 +158,6 @@ class UserInterface(QtWidgets.QWidget):
         divider.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         divider.setFixedHeight(1)
         return divider
-
 
     def _apply_styles(self):
         """
@@ -254,7 +249,6 @@ class UserInterface(QtWidgets.QWidget):
             }
         """)
 
-
     def _setup_logging(self):
         """
             Attach a Qt-aware logging handler so log records from anywhere
@@ -267,7 +261,6 @@ class UserInterface(QtWidgets.QWidget):
         app_logger = logging.getLogger()
         app_logger.setLevel(logging.INFO)
         app_logger.addHandler(self._log_handler)
-
 
     def _wire_actions(self):
         """

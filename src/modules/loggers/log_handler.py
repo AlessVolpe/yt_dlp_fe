@@ -3,6 +3,7 @@ from typing import override
 
 from PySide6 import QtCore
 
+
 class QtLogHandler(QtCore.QObject, logging.Handler):
     """
         A logging handler that re-emits every log as a Qt signal,

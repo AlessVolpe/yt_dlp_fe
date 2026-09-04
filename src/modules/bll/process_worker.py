@@ -3,6 +3,7 @@ import subprocess
 
 from PySide6 import QtCore
 
+
 class ProcessWorker(QtCore.QThread):
     finished_process = QtCore.Signal(int)
 
