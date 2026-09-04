@@ -9,11 +9,14 @@ logger = logging.getLogger(__name__)
 
 
 class FormatConverter(QtCore.QObject):
-    def __init__(self, gui, download_type, file_path):
+    finished_conversion = QtCore.Signal()
+
+    def __init__(self, gui, download_type, file_path, is_playlist=False):
         super().__init__()
         self.gui = gui
         self.download_type = download_type
         self.file_path = file_path
+        self.is_playlist = is_playlist
 
         self._worker = None
 
@@ -41,10 +44,7 @@ class FormatConverter(QtCore.QObject):
         except FileNotFoundError:
             self.gui.dialog_box.appendPlainText("Temporary file not found.")
 
-        self._set_status("Idle")
-        # Ensure buttons are unlocked when all tasks are complete
-        self.gui.audio_only_button.setEnabled(True)
-        self.gui.video_button.setEnabled(True)
+        self.finished_conversion.emit()
 
     def _set_status(self, text):
         """
