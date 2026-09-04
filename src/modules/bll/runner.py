@@ -8,17 +8,18 @@ from modules.bll.process_worker import ProcessWorker
 
 logger = logging.getLogger(__name__)
 
+
 class Runner(QtCore.QObject):
     """
         Class to handle the download process.
     """
-    def __init__(self, gui, download_dir = None):
+
+    def __init__(self, gui, download_dir=None):
         super().__init__()
         self.gui = gui
         self.selected_directory = download_dir
         self.is_playlist = False
         self._worker = None
-
 
     @QtCore.Slot()
     def is_playlist_check(self, state):
@@ -27,7 +28,6 @@ class Runner(QtCore.QObject):
         """
         self.is_playlist = state
 
-
     @QtCore.Slot()
     def on_audio_only_button_click(self):
         """
@@ -35,14 +35,12 @@ class Runner(QtCore.QObject):
         """
         self._start_download("audio")
 
-
     @QtCore.Slot()
     def on_video_button_click(self):
         """
             Slot function to handle video button click event.
         """
         self._start_download("video")
-
 
     @QtCore.Slot()
     def _start_download(self, download_type):
@@ -71,7 +69,6 @@ class Runner(QtCore.QObject):
         self._worker.finished_process.connect(self._on_download_end)
         self._worker.start()
 
-
     @QtCore.Slot(int)
     def _on_download_end(self, exit_code):
         logger.info(f"Download finished (exit code: {exit_code})")
@@ -88,7 +85,6 @@ class Runner(QtCore.QObject):
             self.gui.audio_only_button.setEnabled(True)
             self.gui.video_button.setEnabled(True)
 
-
     @QtCore.Slot()
     def open_file_dialog(self):
         """
@@ -103,13 +99,11 @@ class Runner(QtCore.QObject):
             self.selected_directory = dialog.selectedFiles()[0]
             self.gui.location_label.setText(self.selected_directory)
 
-
     @staticmethod
     def update_on_startup():
         cmd = "yt-dlp -U"
         with subprocess.Popen(cmd, shell=True):
             pass
-
 
     def _set_status(self, text):
         """

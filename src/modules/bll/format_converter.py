@@ -1,10 +1,9 @@
 import logging
-
 from pathlib import Path
+
 from PySide6 import QtCore
 
 from modules.bll.process_worker import ProcessWorker
-
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +31,6 @@ class FormatConverter(QtCore.QObject):
         self._worker.finished_process.connect(self._on_conversion_end)
         self._worker.start()
 
-
     def _on_conversion_end(self, exit_code):
         logger.info(f"Conversion finished (exit code: {exit_code})")
 
@@ -47,7 +45,6 @@ class FormatConverter(QtCore.QObject):
         # Ensure buttons are unlocked when all tasks are complete
         self.gui.audio_only_button.setEnabled(True)
         self.gui.video_button.setEnabled(True)
-
 
     def _set_status(self, text):
         """
