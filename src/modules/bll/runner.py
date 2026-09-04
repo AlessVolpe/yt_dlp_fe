@@ -122,7 +122,7 @@ class Runner(QtCore.QObject):
     def _build_cmd(self, cmd, output_path, url) -> str:
         if self.is_playlist:
             cmd += " --yes-playlist"
-            output_path += "/%(playlist_id)s/%(id)s.%(ext)s"
+            output_path += "/%(playlist_id)s/%(playlist_index) - %(id)s.%(ext)s"
         else:
             cmd += " --no-playlist"
             output_path += "/%(id)s.%(ext)s"
