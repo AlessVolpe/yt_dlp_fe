@@ -1,6 +1,6 @@
 # yt-dlp Front End
 
-A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built with [PySide6](https://doc.qt.io/qtforpython-6/) (Qt for Python). Paste a URL, pick a destination, and download audio or video — including full playlists.
+A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built with [PySide6](https://doc.qt.io/qtforpython-6/) (Qt for Python). Paste a URL, pick a destination, and download audio or video - including full playlists.
 
 ## Status
 
@@ -10,9 +10,9 @@ A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built 
 
 - Single-window Qt interface with a grouped Source / Activity / Actions layout
 - URL input field, with a playlist toggle for downloading an entire playlist instead of a single video
-- Destination folder picker ("Change") — downloads are organized into `DLP_AUDIO/` and `DLP_VIDEO/` subfolders inside the chosen directory (playlists additionally get one numbered subfolder per item)
+- Destination folder picker ("Change") - downloads are organized into `DLP_AUDIO/` and `DLP_VIDEO/` subfolders inside the chosen directory (playlists additionally get one numbered subfolder per item)
 - Separate **Audio only** and **Download video** actions, run on a background thread so the window stays responsive for the whole download
-- Automatic format conversion from `.webm` to `.wav` (audio) or `.mp4` (video) via `ffmpeg` — only runs when the download actually came down as `.webm`; anything else yt-dlp delivers is left as-is
+- Automatic format conversion from `.webm` to `.wav` (audio) or `.mp4` (video) via `ffmpeg` - only runs when the download actually came down as `.webm`; anything else yt-dlp delivers is left as-is
 - Activity log streaming `yt-dlp`'s real-time output, with an Idle / Downloading / Converting status badge and action buttons that update live
 - Checks for `yt-dlp` updates on startup before the main window appears
 
@@ -48,14 +48,14 @@ yt_dlp_fe/
 
 ## Requirements
 
-- Python 3.9+ — the latest available version is recommended
-- [PySide6](https://pypi.org/project/PySide6/) — installed automatically via `pip install -r requirements.txt` when running from source (a packaged `.exe` bundles it, so end users won't need this)
-- [yt-dlp](https://pypi.org/project/yt-dlp/) — must be reachable on your `PATH` as the `yt-dlp` command, since it's invoked via subprocess
-- [FFmpeg](https://ffmpeg.org/) — must be reachable on your `PATH` as the `ffmpeg` command, since it's invoked via subprocess
+- Python 3.9+ - the latest available version is recommended
+- [PySide6](https://pypi.org/project/PySide6/) - installed automatically via `pip install -r requirements.txt` when running from source (a packaged `.exe` bundles it, so end users won't need this)
+- [yt-dlp](https://pypi.org/project/yt-dlp/) - must be reachable on your `PATH` as the `yt-dlp` command, since it's invoked via subprocess
+- [FFmpeg](https://ffmpeg.org/) - must be reachable on your `PATH` as the `ffmpeg` command, since it's invoked via subprocess
 
 ## Installation
 
-> **Note:** the app will eventually be distributed as a portable `.exe` (or an equivalent package for other platforms) — for now, run it from source.
+> **Note:** the app will eventually be distributed as a portable `.exe` (or an equivalent package for other platforms) - for now, run it from source.
 
 1. Clone the repository:
    ```bash
@@ -90,7 +90,7 @@ python src/main.py
 
 ## Contributing
 
-I'm trying to keep this repository as clean as possible, so please follow the [Conventional Branch](https://conventionalbranch.org/) and [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) naming conventions — everything lowercase, including the commit description.
+I'm trying to keep this repository as clean as possible, so please follow the [Conventional Branch](https://conventionalbranch.org/) and [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) naming conventions - everything lowercase, including the commit description.
 
 PR titles should follow the same conventional-commit format (`type(scope): description`) with a clear, descriptive summary of the work; please also write a good PR description.
 
