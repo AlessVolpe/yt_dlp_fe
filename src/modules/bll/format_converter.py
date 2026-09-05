@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class FormatConverter(QtCore.QObject):
     finished_conversion = QtCore.Signal()
 
-    def __init__(self, gui, download_type, file_path, is_playlist=False):
+    def __init__(self, gui, download_type, file_path, is_playlist = False):
         super().__init__()
         self.gui = gui
         self.download_type = download_type
@@ -24,6 +24,12 @@ class FormatConverter(QtCore.QObject):
         """
             Convert the webm to wav if audio or to mp4 if video
         """
+        source = Path(f"{self.file_path}.webm")
+        if not source.exists():
+            logger.info(f"{self.file_path} was not downloaded as .webm file - no conversion needed")
+            self.finished_conversion.emit()
+            return
+
         ext = "wav" if self.download_type == "audio" else "mp4"
         cmd = f"ffmpeg -i {self.file_path}.webm {self.file_path}.{ext}"
 
