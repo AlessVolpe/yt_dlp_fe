@@ -1,76 +1,65 @@
-# YT-DLP Front End
+# yt-dlp Front End
 
-A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built
-with [PySide6](https://doc.qt.io/qtforpython-6/) (Qt for Python). Paste a URL, pick a destination, and download audio or
-video.
+A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built with [PySide6](https://doc.qt.io/qtforpython-6/) (Qt for Python). Paste a URL, pick a destination, and download audio or video — including full playlists.
 
 ## Status
 
-🚧 **Early development.** The interface is fully built out and download requests are now wired to real `yt-dlp`
-subprocess calls (previously these were placeholder echoes). Packaging via PyInstaller (`main.spec`) is also in place
-for building a standalone executable.
-
-### For collaborators
-
-Please I'm trying to keep this repository as clean as possible and I want to ask you to
-use [conventional branch](https://conventionalbranch.org/)
-and [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) naming conventions (please only lowercase).
-PRs must be titled as a commit, giving a comprehensive name for the work done; try to make also a good PR description.
-Soon I'll try to make the workflows function!
-
-**The scope is (dlpfe-ci) for ci related PRs and commits, (dlpfe) for everything else!**
+🚧 **Active development.** The app downloads audio and video (including full playlists) via real `yt-dlp` subprocess calls, streams `yt-dlp`'s own output into the activity log in real time, converts downloaded files with `ffmpeg`, and checks for `yt-dlp` updates on startup before the main window appears. Packaging via PyInstaller (`main.spec`) is in place for building a standalone executable.
 
 ## Features
 
 - Single-window Qt interface with a grouped Source / Activity / Actions layout
-- URL input field
-- Destination folder picker ("Change") - downloads are organized into `DLP_AUDIO/` and `DLP_VIDEO/` subfolders inside
-  the chosen directory
-- Separate **Audio only** and **Download video** actions, each shelling out to `yt-dlp`
-- Automatic format convertion from `.webm` to `.wav` for audio and `.mp4` for video (currently unreliable)
-- Read-only activity log with an Idle / Downloading status badge
+- URL input field, with a playlist toggle for downloading an entire playlist instead of a single video
+- Destination folder picker ("Change") — downloads are organized into `DLP_AUDIO/` and `DLP_VIDEO/` subfolders inside the chosen directory (playlists additionally get one numbered subfolder per item)
+- Separate **Audio only** and **Download video** actions, run on a background thread so the window stays responsive for the whole download
+- Automatic format conversion from `.webm` to `.wav` (audio) or `.mp4` (video) via `ffmpeg` — for playlists, every downloaded file is converted in turn (currently unreliable, see Roadmap)
+- Activity log streaming `yt-dlp`'s real-time output, with an Idle / Downloading / Converting status badge and action buttons that update live
+- Checks for `yt-dlp` updates on startup before the main window appears
 
 ## Project Structure
 
 ```
 yt_dlp_fe/
-├── assets/                          # Icons / static resources (e.g. for packaging)
+├── .github/                          # CI workflow configs
+├── assets/                           # Icons / static resources (e.g. for packaging)
 ├── src/
 │   ├── config/
 │   │   ├── __init__.py
-│   │   └── constants.py             # Shared path constants (e.g. ICON_PATH)
+│   │   └── constants.py              # Shared path constants (e.g. ICON_PATH)
 │   ├── modules/
-│   │   ├── bll/                     # Business/backend logic
+│   │   ├── bll/                      # Business/backend logic
 │   │   │   ├── __init__.py
-│   │   │   ├── format_converter.py
-│   │   │   ├── process_worker.py    # Background QThread: runs a command, logs output live
-│   │   │   └── runner.py            # Runner: builds and runs the yt-dlp subprocess calls
-│   │   ├── guis/                    # GUI windows
+│   │   │   ├── format_converter.py   # Converts a downloaded file via ffmpeg (.webm -> .wav/.mp4)
+│   │   │   ├── process_worker.py     # Background QThread: runs a command, logs output live
+│   │   │   └── runner.py             # Runner: builds and runs the yt-dlp subprocess calls
+│   │   ├── guis/                     # GUI windows
 │   │   │   ├── __init__.py
-│   │   │   ├── progress_window.py   # Startup update-check window
-│   │   │   └── user_interface.py    # Main application window
-│   │   ├── loggers/                 # Real-time logging plumbing
+│   │   │   ├── progress_window.py    # Startup update-check window
+│   │   │   └── user_interface.py     # Main application window
+│   │   ├── loggers/                  # Real-time logging plumbing
 │   │   │   ├── __init__.py
-│   │   │   └── log_handler.py       # Bridges Python `logging` records into a Qt signal
+│   │   │   └── log_handler.py        # Bridges Python `logging` records into a Qt signal
 │   │   └── __init__.py
-│   └── main.py                      # Application entry point
+│   └── main.py                       # Application entry point
 ├── requirements.txt
+├── main.spec                         # PyInstaller build spec
 ├── .gitignore
 └── README.md
+
+# Generated / git-ignored, not tracked:
+# .venv/, build/, dist/, .vscode/
 ```
 
 ## Requirements
 
-- Python 3.9+ - I recommend the latest version available
-- [PySide6](https://pypi.org/project/PySide6/) - automatically installed if you're building the project
-- [yt-dlp](https://pypi.org/project/yt-dlp/) - must be reachable on your `PATH` as the `yt-dlp` command, since it's
-  invoked via subprocess
-- [FFmpeg](https://ffmpeg.org/) - must be reachable on your `PATH` as the `ffmpeg` command, since it's invoked via
-  subprocess
+- Python 3.9+ — the latest available version is recommended
+- [PySide6](https://pypi.org/project/PySide6/) — installed automatically via `pip install -r requirements.txt` when running from source (a packaged `.exe` bundles it, so end users won't need this)
+- [yt-dlp](https://pypi.org/project/yt-dlp/) — must be reachable on your `PATH` as the `yt-dlp` command, since it's invoked via subprocess
+- [FFmpeg](https://ffmpeg.org/) — must be reachable on your `PATH` as the `ffmpeg` command, since it's invoked via subprocess
 
 ## Installation
 
-### N.B.: The application will be released as a portable `.exe` or packaged nonetheless
+> **Note:** the app will eventually be distributed as a portable `.exe` (or an equivalent package for other platforms) — for now, run it from source.
 
 1. Clone the repository:
    ```bash
@@ -98,15 +87,28 @@ python src/main.py
 ```
 
 1. Paste a video/audio URL into the input field.
-2. Click **Change** to pick a destination folder (defaults to your system Downloads folder).
-3. Click **Audio only** or **Download video**.
-4. Progress/status messages appear in the activity log, with the badge switching to "Downloading...".
+2. Check **Is it a Playlist?** if the URL points to a playlist rather than a single video.
+3. Click **Change** to pick a destination folder (defaults to your system Downloads folder).
+4. Click **Audio only** or **Download video**.
+5. Progress/status messages appear in the activity log in real time, with the badge cycling through "Downloading...", "Converting...", and back to "Idle".
+
+## Contributing
+
+I'm trying to keep this repository as clean as possible, so please follow the [Conventional Branch](https://conventionalbranch.org/) and [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) naming conventions — everything lowercase, including the commit description.
+
+PR titles should follow the same conventional-commit format (`type(scope): description`) with a clear, descriptive summary of the work; please also write a good PR description.
+
+Use the `dlpfe-ci` scope for CI-related PRs and commits, and `dlpfe` for everything else.
+
+CI workflows to enforce this automatically are coming soon.
 
 ## Roadmap
 
 - [x] Selector for single video/playlist
 - [x] Auto-update feature launching the `yt-dlp -U` command
 - [x] Stream real-time yt-dlp progress into the log panel instead of a single log line
+- [x] Convert every file downloaded from a playlist, not just a single video
+- [ ] Fix unreliable format conversion (`FormatConverter` assumes a `.webm` source file, which isn't always what yt-dlp downloads)
 - [ ] Basic URL validation and error handling
 - [ ] Output/format/quality selection
 
