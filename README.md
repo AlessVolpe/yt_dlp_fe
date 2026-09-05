@@ -4,7 +4,7 @@ A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built 
 
 ## Status
 
-🚧 **Active development.** The app downloads audio and video (including full playlists) via real `yt-dlp` subprocess calls, streams `yt-dlp`'s own output into the activity log in real time, converts downloaded files with `ffmpeg`, and checks for `yt-dlp` updates on startup before the main window appears. Packaging via PyInstaller (`main.spec`) is in place for building a standalone executable.
+🚧 **Active development.** The app downloads audio and video (including full playlists) via real `yt-dlp` subprocess calls, streams `yt-dlp`'s own output into the activity log in real time, converts downloaded files with `ffmpeg`, and checks for `yt-dlp` updates on startup before the main window appears.
 
 ## Features
 
