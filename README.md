@@ -42,7 +42,6 @@ yt_dlp_fe/
 │   │   └── __init__.py
 │   └── main.py                       # Application entry point
 ├── requirements.txt
-├── main.spec                         # PyInstaller build spec
 ├── .gitignore
 └── README.md
 
