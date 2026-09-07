@@ -12,13 +12,15 @@ a = Analysis(
         ('assets', 'assets'),  # Bundles static icons and assets
     ],
     hiddenimports=[
+        'modules.bll.dependency_checker',
         'modules.bll.format_converter',
         'modules.bll.process_worker',
         'modules.bll.runner',
+        'modules.guis.dependency_error_dialog',
         'modules.guis.progress_window',
         'modules.guis.user_interface',
         'modules.loggers.log_handler',
-        'config.constants',
+        'config.constants'
     ],
     hookspath=[],
     hooksconfig={},

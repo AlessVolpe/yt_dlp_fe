@@ -5,6 +5,7 @@ from PySide6 import QtCore
 
 from config.constants import MAX_POSITIVE_INTEGER
 from config.error_codes import ExitCode
+from modules.bll.dependency_checker import is_available
 
 
 class ProcessWorker(QtCore.QThread):
@@ -20,6 +21,14 @@ class ProcessWorker(QtCore.QThread):
 
     def run(self):
         try:
+            if not is_available(self._process_name):
+                self.logger.error(
+                    f"'{self._process_name}' was not found on PATH. "
+                    "It may have been uninstalled or moved since the app started"
+                )
+                self.finished_process.emit(ExitCode.MISSING_EXECUTABLE)
+                return
+
             process = subprocess.Popen(
                 self._command,
                 shell=True,
