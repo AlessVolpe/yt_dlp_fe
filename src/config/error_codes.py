@@ -2,7 +2,8 @@ from enum import IntEnum
 
 
 class ExitCode(IntEnum):
-    """Normalized exit codes for subprocesses run by the app.
+    """
+    Normalized exit codes for subprocesses run by the app.
 
     Raw subprocess return codes are mapped to these members where
     possible (see `ProcessWorker.run`) so calling code can compare
