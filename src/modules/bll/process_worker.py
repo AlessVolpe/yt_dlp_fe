@@ -4,6 +4,7 @@ import subprocess
 from PySide6 import QtCore
 
 from config.constants import MAX_POSITIVE_INTEGER
+from config.error_codes import ExitCode
 
 
 class ProcessWorker(QtCore.QThread):
@@ -35,9 +36,14 @@ class ProcessWorker(QtCore.QThread):
                         self.logger.info(line)
 
             process.wait()
-            return_code = process.returncode if process.returncode else -1
-            if return_code > MAX_POSITIVE_INTEGER:
-                return_code -= 1 << 32
+            raw_code = process.returncode if process.returncode is not None else ExitCode.GENERAL_ERROR
+            if raw_code > MAX_POSITIVE_INTEGER:
+                raw_code -= 1 << 32
+
+            try:
+                return_code = ExitCode(raw_code)
+            except ValueError:
+                return_code = raw_code
 
             self.finished_process.emit(return_code)
         except Exception as e:

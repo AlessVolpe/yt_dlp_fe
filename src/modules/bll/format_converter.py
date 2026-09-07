@@ -3,6 +3,7 @@ from pathlib import Path
 
 from PySide6 import QtCore
 
+from config.error_codes import ExitCode
 from modules.bll.process_worker import ProcessWorker
 
 logger = logging.getLogger(__name__)
@@ -43,12 +44,13 @@ class FormatConverter(QtCore.QObject):
     def _on_conversion_end(self, exit_code):
         logger.info(f"Conversion finished (exit code: {exit_code})")
 
-        try:
-            self.gui.dialog_box.appendPlainText("Deleting temporary file...")
-            file_path = Path(f"{self.file_path}.webm")
-            file_path.unlink()
-        except FileNotFoundError:
-            self.gui.dialog_box.appendPlainText("Temporary file not found.")
+        if exit_code == ExitCode.SUCCESS:
+            try:
+                self.gui.dialog_box.appendPlainText(f"Deleting temporary {"file" if self.is_playlist is True else "files"}...")
+                file_path = Path(f"{self.file_path}.webm")
+                file_path.unlink()
+            except FileNotFoundError:
+                self.gui.dialog_box.appendPlainText("Temporary file not found.")
 
         self.finished_conversion.emit()
 

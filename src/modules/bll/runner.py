@@ -4,6 +4,7 @@ from pathlib import Path
 
 from PySide6 import QtCore, QtWidgets
 
+from config.error_codes import ExitCode
 from modules.bll.format_converter import FormatConverter
 from modules.bll.process_worker import ProcessWorker
 
@@ -74,7 +75,7 @@ class Runner(QtCore.QObject):
     def _on_download_end(self, exit_code):
         logger.info(f"Download finished (exit code: {exit_code})")
 
-        if exit_code == 0:
+        if exit_code == ExitCode.SUCCESS:
             if self.is_playlist:
                 self._convert_playlist_files()
             else:
