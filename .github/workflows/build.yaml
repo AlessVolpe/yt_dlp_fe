@@ -18,6 +18,74 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate Tag & Generate Clean Changelog
+        id: auto_tag
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        shell: python
+        run: |
+          import os, re, subprocess
+
+          # Fetch commit hash and commit message
+          log_lines = subprocess.check_output(
+              ["git", "log", "--pretty=format:%h %s"], text=True
+          ).splitlines()
+
+          fixes = 0
+          feats = 0
+          filtered_changelog = []
+
+          # Commit types to exclude from release notes
+          EXCLUDE_PATTERN = r'^\w+\s+(docs|chore|style|refactor|test|ci)(\(.*?\))?:'
+
+          for line in log_lines:
+              # Count fixes and features for base-12 SemVer
+              if re.search(r'\b(fix|fix\(.*?\)):', line):
+                  fixes += 1
+              if re.search(r'\b(feat|feat\(.*?\)):', line):
+                  feats += 1
+
+              # Filter out non-code types and CI scope
+              if re.search(EXCLUDE_PATTERN, line, re.IGNORECASE) or 'dlpfe-ci' in line:
+                  continue
+
+              filtered_changelog.append(f"- {line}")
+
+          # Base-12 calculation: 12 fixes = 1 minor, 12 feats = 1 major
+          patch = fixes % 12
+          total_minor = (fixes // 12) + feats
+          minor = total_minor % 12
+          major = total_minor // 12
+
+          new_tag = f"v{major}.{minor}.{patch}"
+
+          # Construct markdown body
+          changelog_body = "### What's Changed\n\n"
+          if filtered_changelog:
+              changelog_body += "\n".join(filtered_changelog)
+          else:
+              changelog_body += "Maintenance updates and minor fixes."
+
+          # Output tag and save changelog file
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as f:
+              f.write(f"new_tag={new_tag}\n")
+
+          with open("CHANGELOG.md", "w", encoding="utf-8") as f:
+              f.write(changelog_body)
+
+      - name: Determine Release Tag Name
+        id: tag_name
+        shell: pwsh
+        run: |
+          if ("${{ steps.auto_tag.outputs.new_tag }}" -ne "") {
+              $tag = "${{ steps.auto_tag.outputs.new_tag }}"
+          } else {
+              $rawTag = "${{ github.ref_name }}"
+              $tag = $rawTag -replace '[\\/:*?"<>|]', '-'
+          }
+          Write-Output "RELEASE_TAG=$tag" >> $env:GITHUB_ENV
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -38,9 +106,7 @@ jobs:
       - name: Rename Executable
         shell: pwsh
         run: |
-          $rawTag = "${{ github.ref_name }}"
-          # Sanitize characters like '/' in PR refs (e.g. 13/merge -> 13-merge) or feature branches
-          $tag = $rawTag -replace '[\\/:*?"<>|]', '-'
+          $tag = "$env:RELEASE_TAG"
           $exe = Get-ChildItem -Path dist -Filter "*.exe" | Select-Object -First 1
           if ($exe) {
               Rename-Item -Path $exe.FullName -NewName "yt_dlp_fe-$tag.exe"
@@ -55,7 +121,8 @@ jobs:
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+        if: steps.auto_tag.outputs.new_tag != '' || startsWith(github.ref, 'refs/tags/')
         with:
+          tag_name: ${{ steps.auto_tag.outputs.new_tag || github.ref_name }}
           files: dist/*.exe
-          generate_release_notes: true
+          body_path: CHANGELOG.md
