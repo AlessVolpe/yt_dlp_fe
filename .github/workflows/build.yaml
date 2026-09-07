@@ -27,51 +27,60 @@ jobs:
         shell: python
         run: |
           import os, re, subprocess
-
-          # Fetch commit hash and commit message
-          log_lines = subprocess.check_output(
-              ["git", "log", "--pretty=format:%h %s"], text=True
-          ).splitlines()
-
+          
+          # ================= CONFIGURATION =================
+          STAGE = "alpha"      # Options: "alpha", "beta", "" (for stable)
+          RESET_POINT = None  # Set to a tag/commit (e.g. "v0.0.4-alpha") to reset fix/feat counters
+          # =================================================
+          
+          # Build git log command based on RESET_POINT
+          git_cmd = ["git", "log", "--pretty=format:%h %s"]
+          if RESET_POINT:
+              git_cmd.append(f"{RESET_POINT}..HEAD")
+          
+          log_lines = subprocess.check_output(git_cmd, text=True).splitlines()
+          
           fixes = 0
           feats = 0
           filtered_changelog = []
-
+          
           # Commit types to exclude from release notes
           EXCLUDE_PATTERN = r'^\w+\s+(docs|chore|style|refactor|test|ci)(\(.*?\))?:'
-
+          
           for line in log_lines:
-              # Count fixes and features for base-12 SemVer
               if re.search(r'\b(fix|fix\(.*?\)):', line):
                   fixes += 1
               if re.search(r'\b(feat|feat\(.*?\)):', line):
                   feats += 1
-
-              # Filter out non-code types and CI scope
+          
               if re.search(EXCLUDE_PATTERN, line, re.IGNORECASE) or 'dlpfe-ci' in line:
                   continue
-
+          
               filtered_changelog.append(f"- {line}")
-
+          
           # Base-12 calculation: 12 fixes = 1 minor, 12 feats = 1 major
           patch = fixes % 12
           total_minor = (fixes // 12) + feats
           minor = total_minor % 12
           major = total_minor // 12
-
-          new_tag = f"v{major}.{minor}.{patch}"
-
+          
+          # Generate tag suffix
+          suffix = f"-{STAGE}" if STAGE else ""
+          new_tag = f"v{major}.{minor}.{patch}{suffix}"
+          is_prerelease = bool(STAGE)
+          
           # Construct markdown body
           changelog_body = "### What's Changed\n\n"
           if filtered_changelog:
               changelog_body += "\n".join(filtered_changelog)
           else:
               changelog_body += "Maintenance updates and minor fixes."
-
-          # Output tag and save changelog file
+          
+          # Output variables to GitHub Actions
           with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as f:
               f.write(f"new_tag={new_tag}\n")
-
+              f.write(f"is_prerelease={'true' if is_prerelease else 'false'}\n")
+          
           with open("CHANGELOG.md", "w", encoding="utf-8") as f:
               f.write(changelog_body)
 
