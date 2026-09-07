@@ -35,6 +35,15 @@ jobs:
         run: |
           pyinstaller main.spec --noconfirm
 
+      - name: Rename Executable
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $exe = Get-ChildItem -Path dist -Filter "*.exe" | Select-Object -First 1
+          if ($exe) {
+              Rename-Item -Path $exe.FullName -NewName "yt_dlp_fe-$tag.exe"
+          }
+
       - name: Upload Windows Executable Artifact
         uses: actions/upload-artifact@v4
         with:
