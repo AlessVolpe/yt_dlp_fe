@@ -3,6 +3,8 @@ import subprocess
 
 from PySide6 import QtCore
 
+from config.constants import MAX_POSITIVE_INTEGER
+
 
 class ProcessWorker(QtCore.QThread):
     finished_process = QtCore.Signal(int)
@@ -33,7 +35,11 @@ class ProcessWorker(QtCore.QThread):
                         self.logger.info(line)
 
             process.wait()
-            self.finished_process.emit(process.returncode)
+            return_code = process.returncode if process.returncode else -1
+            if return_code > MAX_POSITIVE_INTEGER:
+                return_code -= 1 << 32
+
+            self.finished_process.emit(return_code)
         except Exception as e:
             self.logger.error(f"Error while running {self._process_name}: {e}")
             self.finished_process.emit(-1)

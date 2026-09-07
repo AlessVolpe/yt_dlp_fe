@@ -31,7 +31,7 @@ class FormatConverter(QtCore.QObject):
             return
 
         ext = "wav" if self.download_type == "audio" else "mp4"
-        cmd = f"ffmpeg -i {self.file_path}.webm {self.file_path}.{ext}"
+        cmd = f'ffmpeg -i "{source}" "{self.file_path}.{ext}"'
 
         self._set_status("Converting...")
         logger.info(f"Converting the {self.download_type} webm file to {ext} file")
