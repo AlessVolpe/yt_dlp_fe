@@ -14,7 +14,7 @@ class UserInterface(QtWidgets.QWidget):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("yt-dlp ui")
+        self.setWindowTitle("YT-DLP frontend")
         self.setWindowIcon(QtGui.QIcon(str(ICON_PATH)))
         self.setMinimumSize(480, 420)
         self.resize(480, 460)
