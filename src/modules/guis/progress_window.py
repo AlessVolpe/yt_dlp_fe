@@ -6,13 +6,27 @@ from modules.guis.user_interface import UserInterface
 
 class ProgressWindow(QtWidgets.QWidget):
     """
-        Small window shown on startup while yt-dlp is checked for updates.
-        Runs the update, then closes itself so the main window can appear.
+    Small window shown on startup while yt-dlp is checked for updates.
+
+    Displays an indeterminate progress bar while a `yt-dlp -U` update
+    check runs, reports the outcome, then closes itself so the main
+    application window can appear.
+
+    Attributes:
+        finished (QtCore.Signal): Signal emitted right before this window
+            closes itself.
     """
 
     finished = QtCore.Signal()
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Build the window, apply styling, and schedule the update check.
+
+        The actual update check is deferred via a single-shot timer so
+        the window has a chance to paint first, avoiding the appearance
+        of a frozen window during the (blocking) update call.
+        """
         super().__init__()
         self.setWindowTitle("yt-dlp ui")
         self.setFixedSize(320, 130)
@@ -28,9 +42,12 @@ class ProgressWindow(QtWidgets.QWidget):
         """
         QtCore.QTimer.singleShot(100, self._run_update)
 
-    def _build_ui(self):
+    def _build_ui(self) -> None:
         """
-            Build and arrange the status label and progress bar.
+        Build and arrange the status label and progress bar.
+
+        Returns:
+            None
         """
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)
@@ -51,9 +68,12 @@ class ProgressWindow(QtWidgets.QWidget):
         layout.addWidget(self.progress_bar)
         layout.addStretch()
 
-    def _apply_styles(self):
+    def _apply_styles(self) -> None:
         """
-            Apply the same dark theme used across the app.
+        Apply the same dark theme used across the app.
+
+        Returns:
+            None
         """
         self.setStyleSheet("""
             QWidget {
@@ -76,9 +96,17 @@ class ProgressWindow(QtWidgets.QWidget):
             }
         """)
 
-    def _run_update(self):
+    def _run_update(self) -> None:
         """
-            Trigger the yt-dlp update check and report the result.
+        Trigger the yt-dlp update check and report the result.
+
+        Runs `Runner.update_on_startup()` synchronously, updates the
+        status label with the outcome (or the error message if it
+        raised), and schedules `_finish` to run shortly after so the
+        result stays visible briefly before the window closes.
+
+        Returns:
+            None
         """
         try:
             Runner.update_on_startup()
@@ -88,9 +116,12 @@ class ProgressWindow(QtWidgets.QWidget):
 
         QtCore.QTimer.singleShot(5000, self._finish)
 
-    def _finish(self):
+    def _finish(self) -> None:
         """
-            Emit the finished signal and close the window.
+        Emit the finished signal, close this window, and open the main window.
+
+        Returns:
+            None
         """
         self.finished.emit()
         self.close()
