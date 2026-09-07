@@ -107,7 +107,7 @@ CI workflows to enforce this automatically are coming soon.
 - [x] Auto-update feature launching the `yt-dlp -U` command
 - [x] Stream real-time yt-dlp progress into the log panel instead of a single log line
 - [x] Convert every file downloaded from a playlist, not just a single video
-- [ ] Fix unreliable format conversion (`FormatConverter` assumes a `.webm` source file, which isn't always what yt-dlp downloads)
+- [x] Fix unreliable format conversion (`FormatConverter` assumes a `.webm` source file, which isn't always what yt-dlp downloads)
 - [ ] Basic URL validation and error handling
 - [ ] Output/format/quality selection
 
