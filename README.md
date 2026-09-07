@@ -41,6 +41,7 @@ yt_dlp_fe/
 │   │   │   └── log_handler.py        # Bridges Python `logging` records into a Qt signal
 │   │   └── __init__.py
 │   └── main.py                       # Application entry point
+├── main.spec
 ├── requirements.txt
 ├── .gitignore
 └── README.md
