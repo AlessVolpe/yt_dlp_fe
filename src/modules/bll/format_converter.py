@@ -3,17 +3,21 @@ from pathlib import Path
 
 from PySide6 import QtCore
 
+from config.error_codes import ExitCode
 from modules.bll.process_worker import ProcessWorker
 
 logger = logging.getLogger(__name__)
 
 
 class FormatConverter(QtCore.QObject):
-    def __init__(self, gui, download_type, file_path):
+    finished_conversion = QtCore.Signal()
+
+    def __init__(self, gui, download_type, file_path, is_playlist = False):
         super().__init__()
         self.gui = gui
         self.download_type = download_type
         self.file_path = file_path
+        self.is_playlist = is_playlist
 
         self._worker = None
 
@@ -21,8 +25,14 @@ class FormatConverter(QtCore.QObject):
         """
             Convert the webm to wav if audio or to mp4 if video
         """
+        source = Path(f"{self.file_path}.webm")
+        if not source.exists():
+            logger.info(f"{self.file_path} was not downloaded as .webm file - no conversion needed")
+            self.finished_conversion.emit()
+            return
+
         ext = "wav" if self.download_type == "audio" else "mp4"
-        cmd = f"ffmpeg -i {self.file_path}.webm {self.file_path}.{ext}"
+        cmd = f'ffmpeg -i "{source}" "{self.file_path}.{ext}"'
 
         self._set_status("Converting...")
         logger.info(f"Converting the {self.download_type} webm file to {ext} file")
@@ -34,17 +44,15 @@ class FormatConverter(QtCore.QObject):
     def _on_conversion_end(self, exit_code):
         logger.info(f"Conversion finished (exit code: {exit_code})")
 
-        try:
-            self.gui.dialog_box.appendPlainText("Deleting temporary file...")
-            file_path = Path(f"{self.file_path}.webm")
-            file_path.unlink()
-        except FileNotFoundError:
-            self.gui.dialog_box.appendPlainText("Temporary file not found.")
+        if exit_code == ExitCode.SUCCESS:
+            try:
+                self.gui.dialog_box.appendPlainText(f"Deleting temporary {"file" if self.is_playlist is True else "files"}...")
+                file_path = Path(f"{self.file_path}.webm")
+                file_path.unlink()
+            except FileNotFoundError:
+                self.gui.dialog_box.appendPlainText("Temporary file not found.")
 
-        self._set_status("Idle")
-        # Ensure buttons are unlocked when all tasks are complete
-        self.gui.audio_only_button.setEnabled(True)
-        self.gui.video_button.setEnabled(True)
+        self.finished_conversion.emit()
 
     def _set_status(self, text):
         """

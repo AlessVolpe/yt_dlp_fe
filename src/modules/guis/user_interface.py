@@ -63,7 +63,7 @@ class UserInterface(QtWidgets.QWidget):
         self.isPlaylistButton = QtWidgets.QCheckBox("Is it a Playlist?", self)
         self.isPlaylistButton.setObjectName("isPlaylistButton")
         self.isPlaylistButton.setChecked(False)
-        self.isPlaylistButton.setEnabled(False)
+        # self.isPlaylistButton.setEnabled(False)
 
         location_row = QtWidgets.QHBoxLayout()
         location_row.setContentsMargins(2, 4, 2, 0)
