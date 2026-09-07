@@ -2,6 +2,9 @@ name: Branch name
 
 on: pull_request
 
+permissions:
+  contents: read
+
 jobs:
   conventional-branch:
     runs-on: ubuntu-latest
