@@ -65,9 +65,10 @@ class UserInterface(QtWidgets.QWidget):
         Build the URL input and the save-location row beneath it.
 
         Creates and stores the URL input field (`url_input`), the
-        playlist checkbox (`isPlaylistButton`), the location label
-        (`location_label`), and the "Change" button (`change_button`) as
-        instance attributes for later use.
+        location label (`location_label`), and the "Change" button
+        (`change_button`) as instance attributes for later use.
+        Playlist detection is automatic (see `url_validator`), so no
+        playlist toggle is presented here.
 
         Returns:
             QtWidgets.QWidget: The assembled source section widget.
@@ -84,10 +85,6 @@ class UserInterface(QtWidgets.QWidget):
         self.url_input.setPlaceholderText("Paste a video or playlist URL...")
         self.url_input.setObjectName("urlInput")
         self.url_input.setFixedHeight(38)
-
-        self.isPlaylistButton = QtWidgets.QCheckBox("Is it a Playlist?", self)
-        self.isPlaylistButton.setObjectName("isPlaylistButton")
-        self.isPlaylistButton.setChecked(False)
 
         location_row = QtWidgets.QHBoxLayout()
         location_row.setContentsMargins(2, 4, 2, 0)
@@ -107,7 +104,6 @@ class UserInterface(QtWidgets.QWidget):
 
         layout.addWidget(label)
         layout.addWidget(self.url_input)
-        layout.addWidget(self.isPlaylistButton)
         layout.addLayout(location_row)
 
         return section
@@ -289,10 +285,6 @@ class UserInterface(QtWidgets.QWidget):
                 background-color: #3a2a26;
                 border-color: #3a2a26;
             }
-            QCheckBox {
-                background: transparent;
-                color: #e5533d;
-            }
         """)
 
     def _setup_logging(self) -> None:
@@ -319,17 +311,16 @@ class UserInterface(QtWidgets.QWidget):
         Connect widget signals to the shared Runner instance.
 
         Instantiates the `Runner` for this window and wires the
-        playlist checkbox, "Change" button, and download buttons to
-        their corresponding `Runner` slots.
+        "Change" button and download buttons to their corresponding
+        `Runner` slots. Playlist mode is no longer toggled by the user;
+        `Runner` derives it automatically from the submitted URL.
 
         Returns:
             None
         """
         self.runner = Runner(self, self.download_directory)
 
-        self.isPlaylistButton.stateChanged.connect(
-            lambda: self.runner.is_playlist_check(self.isPlaylistButton.isChecked())
-        )
         self.change_button.clicked.connect(self.runner.open_file_dialog)
         self.audio_only_button.clicked.connect(self.runner.on_audio_only_button_click)
         self.video_button.clicked.connect(self.runner.on_video_button_click)
+       
