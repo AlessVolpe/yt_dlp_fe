@@ -13,8 +13,8 @@ from __future__ import annotations
 import re
 from urllib.parse import ParseResult, parse_qs, urlparse
 
-from bll.url_validation.url_category import UrlCategory
-from bll.url_validation.validation_result import ValidationResult
+from modules.bll.url_validation.url_category import UrlCategory
+from modules.bll.url_validation.validation_result import ValidationResult
 
 # A YouTube video ID is exactly 11 characters drawn from this alphabet.
 _VIDEO_ID = r"[A-Za-z0-9_-]{11}"
