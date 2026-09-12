@@ -10,6 +10,7 @@ from PySide6 import QtCore, QtWidgets
 from config.error_codes import ExitCode
 from modules.bll.format_converter import FormatConverter
 from modules.bll.process_worker import ProcessWorker
+from modules.bll.url_validation.url_validator import validate_url
 
 if TYPE_CHECKING:
     from modules.guis.user_interface import UserInterface
@@ -21,13 +22,15 @@ class Runner(QtCore.QObject):
     """
     Class to handle the download process.
 
-    Builds and runs the `yt-dlp` subprocess calls that download audio or
-    video (optionally as a full playlist), then hands each downloaded
-    file off to a `FormatConverter` for conversion, updating the GUI's
-    status badge and buttons as the process progresses.
+    Validates the submitted URL, builds and runs the `yt-dlp`
+    subprocess calls that download audio or video (automatically
+    switching to playlist mode when the URL calls for it), then hands
+    each downloaded file off to a `FormatConverter` for conversion,
+    updating the GUI's status badge and buttons as the process
+    progresses.
     """
 
-    def __init__(self, gui: UserInterface, download_dir: Optional[str] = None) -> None:
+    def __init__(self, gui: UserInterface, download_dir: Optional[str | Path] = None) -> None:
         """
         Initialize the runner.
 
@@ -43,20 +46,6 @@ class Runner(QtCore.QObject):
         self.is_playlist = False
         self._worker: Optional[ProcessWorker] = None
         self._converter: Optional[FormatConverter] = None
-
-    @QtCore.Slot()
-    def is_playlist_check(self, state: bool) -> None:
-        """
-        Slot function to check if a playlist is provided.
-
-        Args:
-            state (bool): Whether the "Is it a Playlist?" checkbox is
-                currently checked.
-
-        Returns:
-            None
-        """
-        self.is_playlist = state
 
     @QtCore.Slot()
     def on_audio_only_button_click(self) -> None:
@@ -81,12 +70,16 @@ class Runner(QtCore.QObject):
     @QtCore.Slot()
     def _start_download(self, download_type: str) -> None:
         """
-        Build and launch the yt-dlp download command in the background.
+        Validate the URL, then build and launch the yt-dlp download command.
 
-        Clears the activity log, reads the URL from the GUI, builds the
-        appropriate `yt-dlp` command for the requested download type,
-        disables the action buttons, and starts a `ProcessWorker` to run
-        the download.
+        Clears the activity log and validates the URL from the GUI
+        first; non-YouTube, channel, Shorts, or otherwise unsupported
+        links are logged as an error and abort the download before any
+        subprocess is spawned. Otherwise, playlist mode is set from the
+        validation result (superseding any prior value), the
+        appropriate `yt-dlp` command is built for the requested
+        download type, the action buttons are disabled, and a
+        `ProcessWorker` is started to run the download.
 
         Args:
             download_type (str): Either "audio" or "video".
@@ -96,7 +89,13 @@ class Runner(QtCore.QObject):
         """
         self.gui.dialog_box.clear()
         url = self.gui.url_input.text()
-        filename = url.split("=")[-1]
+
+        validation = validate_url(url)
+        if not validation.is_valid:
+            logger.error(validation.error_message)
+            return
+
+        self.is_playlist = validation.is_playlist
         download_format = "bestaudio/best" if download_type == "audio" else "bestvideo*+bestaudio/best"
         subfolder = "DLP_AUDIO" if download_type == "audio" else "DLP_VIDEO"
 
@@ -111,7 +110,7 @@ class Runner(QtCore.QObject):
 
         # Store attributes to use AFTER the download finishes
         self._current_download_type = download_type
-        self._current_filename = filename
+        self._current_filename = validation.video_id
         self._current_subfolder = subfolder
 
         self._worker = ProcessWorker(cmd, parent=self)
@@ -217,8 +216,8 @@ class Runner(QtCore.QObject):
         Build the full yt-dlp command string for a download.
 
         Appends playlist-related flags and the appropriate output
-        template depending on whether a playlist download was requested,
-        then appends the output path and URL arguments.
+        template depending on whether a playlist download was
+        detected, then appends the output path and URL arguments.
 
         Args:
             cmd (str): The base `yt-dlp` command (including the format
