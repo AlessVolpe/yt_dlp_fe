@@ -96,6 +96,20 @@ class FormatConverter(QtCore.QObject):
         Deletes the original `.webm` file when the conversion succeeded,
         then emits `finished_conversion` regardless of the outcome.
 
+        `finished_process` is emitted from inside `ProcessWorker.run()`,
+        a hair before its underlying OS thread has actually unwound.
+        This `FormatConverter` has no Qt parent, so it - and the
+        `ProcessWorker` QThread it parents - is destroyed the instant
+        whoever holds it (e.g. a playlist conversion loop) drops the
+        last Python reference, which can happen synchronously from
+        within this very slot. Waiting for the worker here closes that
+        window: it guarantees the QThread is fully stopped before this
+        object can be torn down, regardless of how quickly the caller
+        chains into the next conversion. Without it, destroying a
+        QThread Qt still considers running aborts the process (seen on
+        Windows as STATUS_STACK_BUFFER_OVERRUN). The wait is effectively
+        instant here, since the thread is already finishing.
+
         Args:
             exit_code (int): The exit code returned by the ffmpeg
                 subprocess.
@@ -104,6 +118,9 @@ class FormatConverter(QtCore.QObject):
             None
         """
         logger.info(f"Conversion finished (exit code: {exit_code})")
+
+        if self._worker is not None:
+            self._worker.wait()
 
         if exit_code == ExitCode.SUCCESS:
             try:
