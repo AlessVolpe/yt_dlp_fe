@@ -115,7 +115,6 @@ CI workflows to enforce this automatically are coming soon.
 - [x] Convert every file downloaded from a playlist, not just a single video
 - [x] Fix unreliable format conversion (`FormatConverter` assumes a `.webm` source file, which isn't always what yt-dlp downloads)
 - [x] Basic URL validation and error handling
-- [ ] Output/format/quality selection
 
 ## License
 
