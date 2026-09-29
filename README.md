@@ -13,7 +13,7 @@ A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built 
 - Playlist links are detected automatically from the URL itself and downloaded in playlist mode, with no manual toggle required
 - Destination folder picker ("Change") - downloads are organized into `DLP_AUDIO/` and `DLP_VIDEO/` subfolders inside the chosen directory (playlists additionally get one numbered subfolder per item)
 - Separate **Audio only** and **Download video** actions, run on a background thread so the window stays responsive for the whole download
-- Automatic format conversion from `.webm` to `.wav` (audio) or `.mp4` (video) via `ffmpeg` - for playlists, every downloaded file is converted in turn (currently unreliable, see Roadmap)
+- Automatic format conversion from `.webm` to `.wav` (audio) or `.mp4` (video) via `ffmpeg` - for playlists, every downloaded file is converted in turn
 - Activity log streaming `yt-dlp`'s real-time output, with an Idle / Downloading / Converting status badge and action buttons that update live
 - Checks for `yt-dlp` updates on startup before the main window appears
 
@@ -109,12 +109,15 @@ CI workflows to enforce this automatically are coming soon.
 
 ## Roadmap
 
-- [x] Selector for single video/playlist
-- [x] Auto-update feature launching the `yt-dlp -U` command
-- [x] Stream real-time yt-dlp progress into the log panel instead of a single log line
-- [x] Convert every file downloaded from a playlist, not just a single video
-- [x] Fix unreliable format conversion (`FormatConverter` assumes a `.webm` source file, which isn't always what yt-dlp downloads)
-- [x] Basic URL validation and error handling
+Known defects are tracked by strict `xfail` tests under classes named
+`TestKnownDefects`. Remove an `xfail` only after its regression test passes normally.
+
+- [ ] Harden URL parsing against malformed netlocs. `validate_url()` should handle
+  `ValueError` from `urllib.parse.urlparse()` and return `UrlCategory.INVALID`
+  with a user-facing validation error instead of raising.
+- [ ] Keep the main window alive after startup handover. `ProgressWindow._finish()`
+  should retain an owning reference to the created `UserInterface` so garbage
+  collection cannot destroy the visible window.
 
 ## License
 
