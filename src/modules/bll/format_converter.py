@@ -125,7 +125,7 @@ class FormatConverter(QtCore.QObject):
         if exit_code == ExitCode.SUCCESS:
             try:
                 self.gui.dialog_box.appendPlainText(
-                    f"Deleting temporary {"file" if self.is_playlist is True else "files"}...")
+                    f"Deleting temporary {'file' if self.is_playlist else 'files'}...")
                 file_path = Path(f"{self.file_path}.webm")
                 file_path.unlink()
             except FileNotFoundError:
