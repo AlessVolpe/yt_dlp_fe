@@ -66,16 +66,23 @@ class TestBuildCommand:
     def test_single_video_command(self, main_window: Any) -> None:
         runner = main_window.runner
         runner.is_playlist = False
-        assert runner._build_cmd('yt-dlp -f "best"', "/out/DLP_VIDEO", "https://u") == (
-            'yt-dlp -f "best" --no-playlist -o "/out/DLP_VIDEO/%(id)s.%(ext)s" "https://u"'
+        output_path = Path("C:/out/DLP_VIDEO")
+        expected_template = output_path / "%(id)s.%(ext)s"
+        assert runner._build_cmd('yt-dlp -f "best"', str(output_path), "https://u") == (
+            f'yt-dlp -f "best" --no-playlist -o "{expected_template}" "https://u"'
         )
 
     def test_playlist_command(self, main_window: Any) -> None:
         runner = main_window.runner
         runner.is_playlist = True
-        assert runner._build_cmd('yt-dlp -f "best"', "/out/DLP_AUDIO", "https://u") == (
-            'yt-dlp -f "best" --yes-playlist '
-            '-o "/out/DLP_AUDIO/%(playlist_id)s/%(playlist_index)s - %(id)s.%(ext)s" "https://u"'
+        output_path = Path("C:/out/DLP_AUDIO")
+        expected_template = (
+            output_path
+            / "%(playlist_id)s"
+            / "%(playlist_index)s - %(id)s.%(ext)s"
+        )
+        assert runner._build_cmd('yt-dlp -f "best"', str(output_path), "https://u") == (
+            f'yt-dlp -f "best" --yes-playlist -o "{expected_template}" "https://u"'
         )
 
     def test_build_is_pure_with_respect_to_the_base_command(self, main_window: Any) -> None:
@@ -149,9 +156,12 @@ class TestSingleDownload:
         folder = download_dir / subfolder
         assert (folder / f"{VID}.{extension}").exists()
         assert not (folder / f"{VID}.webm").exists()
-        assert fake_binaries.argvs("yt-dlp") == [
-            ["-f", selector, "--no-playlist", "-o", f"{folder}/%(id)s.%(ext)s", VIDEO_URL]
-        ]
+
+        (argv,) = fake_binaries.argvs("yt-dlp")
+        assert argv[:4] == ["-f", selector, "--no-playlist", "-o"]
+        assert Path(argv[4]) == folder / "%(id)s.%(ext)s"
+        assert argv[5] == VIDEO_URL
+
         text = log_text(main_window)
         for expected in (f"Starting {kind} download: {VIDEO_URL}", "Download finished (exit code: 0)",
                          f"Converting the {kind} webm file to {extension} file", "Conversion finished (exit code: 0)"):

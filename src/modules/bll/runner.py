@@ -99,8 +99,9 @@ class Runner(QtCore.QObject):
         download_format = "bestaudio/best" if download_type == "audio" else "bestvideo*+bestaudio/best"
         subfolder = "DLP_AUDIO" if download_type == "audio" else "DLP_VIDEO"
 
+        output_path = Path(self.selected_directory) / subfolder
         cmd = self._build_cmd(
-            f'yt-dlp -f "{download_format}"', f"{self.selected_directory}/{subfolder}", url
+            f'yt-dlp -f "{download_format}"', str(output_path), url
         )
 
         self._set_status("Downloading...")
@@ -142,7 +143,7 @@ class Runner(QtCore.QObject):
                 self.converter = FormatConverter(
                     self.gui,
                     self._current_download_type,
-                    f"{self.selected_directory}/{self._current_subfolder}/{self._current_filename}"
+                    str(Path(self.selected_directory) / self._current_subfolder / self._current_filename),
                 )
                 self.converter.finished_conversion.connect(self._end_all_downloads)
                 self.converter.convert_file()
@@ -229,12 +230,14 @@ class Runner(QtCore.QObject):
         Returns:
             str: The complete, ready-to-run `yt-dlp` command string.
         """
+        output_path = Path(output_path)
+
         if self.is_playlist:
             cmd += " --yes-playlist"
-            output_path += "/%(playlist_id)s/%(playlist_index)s - %(id)s.%(ext)s"
+            output_path = output_path / "%(playlist_id)s" / "%(playlist_index)s - %(id)s.%(ext)s"
         else:
             cmd += " --no-playlist"
-            output_path += "/%(id)s.%(ext)s"
+            output_path /= "%(id)s.%(ext)s"
 
         cmd += f' -o "{output_path}" "{url}"'
         return cmd
