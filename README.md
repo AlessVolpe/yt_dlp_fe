@@ -47,10 +47,14 @@ yt_dlp_fe/
 │   │   │   └── log_handler.py        # Bridges Python `logging` records into a Qt signal
 │   │   └── __init__.py
 │   └── main.py                       # Application entry point
-├── main.spec
-├── requirements.txt
+├── tests/                            # Testing suite: mirrors the src structure and contains testing utilities
+├── .coveragerc
 ├── .gitignore
-└── README.md
+├── main.spec
+├── pytest.ini
+├── README.md
+├── requirements.txt
+└── requirements-dev.txt
 
 # Generated / git-ignored, not tracked:
 # .venv/, build/, dist/, .vscode/
