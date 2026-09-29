@@ -95,6 +95,7 @@ class TestHandOver:
         window._finish()
         stub_main.assert_called_once_with()
         stub_main.return_value.show.assert_called_once_with()
+        assert window.main_app is stub_main.return_value
 
     def test_finished_signal_is_emitted_and_the_splash_is_closed(
         self, qtbot: Any, window: ProgressWindow, stub_main: MagicMock
@@ -112,13 +113,10 @@ class TestHandOver:
         assert observed == [True]
 
     def test_real_main_window_becomes_visible(self, qtbot: Any, window: ProgressWindow) -> None:
-        gc.disable()  # see TestKnownDefects: the freshly created window is otherwise collectable
-        try:
-            window._finish()
-            main = next(w for w in QtWidgets.QApplication.topLevelWidgets() if isinstance(w, UserInterface))
-            qtbot.addWidget(main)
-        finally:
-            gc.enable()
+        window._finish()
+        main = next(w for w in QtWidgets.QApplication.topLevelWidgets() if isinstance(w, UserInterface))
+        qtbot.addWidget(main)
+        assert window.main_app is main
         assert main.isVisible()
 
 
@@ -139,12 +137,7 @@ sys.exit(0 if alive else 3)
 
 
 @pytest.mark.integration
-class TestKnownDefects:
-    @pytest.mark.xfail(
-        reason="ProgressWindow._finish keeps the new UserInterface only in a local variable; the "
-        "window <-> Runner reference cycle is reclaimed by the garbage collector, which crashes "
-        "the interpreter (reproduced headless)",
-    )
+class TestRegression:
     def test_main_window_survives_garbage_collection_after_the_handover(self) -> None:
         env = {**os.environ, "QT_QPA_PLATFORM": "offscreen", "PYTHONPATH": str(BASE_DIR / "src")}
         completed = subprocess.run([sys.executable, "-c", _GC_PROBE], env=env, capture_output=True, timeout=60)

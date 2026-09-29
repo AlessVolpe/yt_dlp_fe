@@ -1,15 +1,14 @@
 # main.spec
-import os
 from PyInstaller.building.build_main import Analysis, PYZ, EXE, COLLECT
 
 block_cipher = None
 
 a = Analysis(
     ['src/main.py'],
-    pathex=['src'],  # Critical: tells PyInstaller to resolve 'modules' imports from src/
+    pathex=['src'],
     binaries=[],
     datas=[
-        ('assets', 'assets'),  # Bundles static icons and assets
+        ('assets', 'assets'),
     ],
     hiddenimports=[
         'modules.bll.dependency_checker',
@@ -40,22 +39,29 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
     [],
+    exclude_binaries=True,
     name='yt_dlp_fe',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
-    console=False,  # Set to True temporarily if you need console output for debugging
+    upx=False,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
     icon='assets/icon.ico',
+)
+
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    strip=False,
+    upx=False,
+    upx_exclude=[],
+    name='yt_dlp_fe',
 )

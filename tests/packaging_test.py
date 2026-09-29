@@ -30,7 +30,7 @@ def _spec_call_kwargs(name: str) -> Dict[str, Any]:
                 try:
                     kwargs[keyword.arg] = ast.literal_eval(keyword.value)
                 except ValueError:
-                    continue  # non-literal expression (e.g. pyz)
+                    continue
             kwargs["__args__"] = node.args
             return kwargs
     raise AssertionError(f"{name}(...) not found in main.spec")
@@ -78,6 +78,14 @@ class TestPyInstallerSpec:
     def test_build_is_windowed_and_named_after_the_project(self) -> None:
         exe = _spec_call_kwargs("EXE")
         assert exe["name"] == "yt_dlp_fe" and exe["console"] is False
+
+    def test_build_uses_onedir_without_upx(self) -> None:
+        exe = _spec_call_kwargs("EXE")
+        collect = _spec_call_kwargs("COLLECT")
+        assert exe["exclude_binaries"] is True
+        assert exe["upx"] is False
+        assert collect["name"] == "yt_dlp_fe"
+        assert collect["upx"] is False
 
 
 @pytest.mark.unit
