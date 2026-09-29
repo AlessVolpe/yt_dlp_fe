@@ -15,18 +15,41 @@ jobs:
         run: |
           curl -sSfLo spec.json https://conventionalbranch.org/v1.1.0/spec.json
           python3 - <<'PY'
-          import json, os, re, sys
+          import json
+          import os
+          import re
+          import sys
 
-          spec = json.load(open("spec.json"))
+          with open("spec.json", encoding="utf-8") as file:
+              spec = json.load(file)
+
           branch = os.environ["BRANCH"]
 
-          if re.fullmatch(spec["grammar"]["regex"], branch):
+          custom_types = ("ci", "test")
+          custom_description = r"[a-z0-9]+(?:[._-][a-z0-9]+)*"
+          custom_regex = rf"(?:{'|'.join(map(re.escape, custom_types))})/{custom_description}"
+
+          follows_spec = re.fullmatch(spec["grammar"]["regex"], branch)
+          follows_custom_convention = re.fullmatch(custom_regex, branch)
+
+          if follows_spec or follows_custom_convention:
               print(f"{branch}: ok")
               sys.exit(0)
 
-          types = ", ".join(f"{t['type']}/" for t in spec["types"])
-          print(f"::error::'{branch}' does not follow the Conventional Branch "
-                f"specification. Expected <type>/<description>, where type is one "
-                f"of: {types}. See https://conventionalbranch.org/")
+          allowed_types = list(
+              dict.fromkeys(
+                  [entry["type"] for entry in spec["types"]]
+                  + list(custom_types)
+              )
+          )
+          types = ", ".join(f"{branch_type}/" for branch_type in allowed_types)
+
+          print(
+              f"::error::'{branch}' does not follow the Conventional Branch "
+              f"specification or the repository-specific branch convention. "
+              f"Expected <type>/<description>, where type is one of: {types}. "
+              f"Descriptions must be lowercase and use letters, numbers, dots, "
+              f"underscores, or hyphens."
+          )
           sys.exit(1)
           PY

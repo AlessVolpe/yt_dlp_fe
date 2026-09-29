@@ -1,6 +1,4 @@
 import logging
-from typing import override
-
 from PySide6 import QtCore
 
 
@@ -33,7 +31,6 @@ class QtLogHandler(QtCore.QObject, logging.Handler):
         logging.Handler.__init__(self, level)
         self.setFormatter(logging.Formatter("%(message)s"))
 
-    @override
     def emit(self, record: logging.LogRecord) -> None:
         """
         Forward a log record as a Qt signal.

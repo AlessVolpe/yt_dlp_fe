@@ -32,6 +32,8 @@ class ProgressWindow(QtWidgets.QWidget):
         self.setFixedSize(320, 130)
         self.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.WindowStaysOnTopHint)
 
+        self.main_app: UserInterface | None = None
+
         self._build_ui()
         self._apply_styles()
 
@@ -59,7 +61,7 @@ class ProgressWindow(QtWidgets.QWidget):
 
         self.progress_bar = QtWidgets.QProgressBar(self)
         self.progress_bar.setObjectName("progressBar")
-        self.progress_bar.setRange(0, 0)  # indeterminate
+        self.progress_bar.setRange(0, 0)
         self.progress_bar.setTextVisible(False)
         self.progress_bar.setFixedHeight(6)
 
@@ -118,12 +120,17 @@ class ProgressWindow(QtWidgets.QWidget):
 
     def _finish(self) -> None:
         """
-        Emit the finished signal, close this window, and open the main window.
+        Open and retain the main window, then close the startup window.
+
+        The main window is created before the splash closes so Qt never
+        observes a moment with no top-level windows. Keeping the instance
+        on ``self`` also prevents Python's garbage collector from destroying
+        the visible window after this method returns.
 
         Returns:
             None
         """
+        self.main_app = UserInterface()
+        self.main_app.show()
         self.finished.emit()
         self.close()
-        main_app = UserInterface()
-        main_app.show()

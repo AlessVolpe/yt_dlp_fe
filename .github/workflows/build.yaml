@@ -2,136 +2,225 @@ name: Build Executable
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "main" ]
     tags: [ "v*" ]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+env:
+  PYTHON_VERSION: "3.11"
+  ARTIFACT_NAME: yt-dlp-fe-windows
+  PACKAGE_BASENAME: yt_dlp_fe-windows-x64
 
 jobs:
-  build-windows:
+  windows-build:
+    name: Test, build, and smoke-test Windows bundle
     runs-on: windows-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Calculate Tag & Generate Clean Changelog
-        id: auto_tag
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-        shell: python
-        run: |
-          import os, re, subprocess
-          
-          # ================= CONFIGURATION =================
-          STAGE = "alpha"      # Options: "alpha", "beta", "" (for stable)
-          RESET_POINT = None  # Set to a tag/commit (e.g. "v0.0.4-alpha") to reset fix/feat counters
-          # =================================================
-          
-          # Build git log command based on RESET_POINT
-          git_cmd = ["git", "log", "--pretty=format:%h %s"]
-          if RESET_POINT:
-              git_cmd.append(f"{RESET_POINT}..HEAD")
-          
-          log_lines = subprocess.check_output(git_cmd, text=True).splitlines()
-          
-          fixes = 0
-          feats = 0
-          filtered_changelog = []
-          
-          # Commit types to exclude from release notes
-          EXCLUDE_PATTERN = r'^\w+\s+(docs|chore|style|refactor|test|ci)(\(.*?\))?:'
-          
-          for line in log_lines:
-              if re.search(r'\b(fix|fix\(.*?\)):', line):
-                  fixes += 1
-              if re.search(r'\b(feat|feat\(.*?\)):', line):
-                  feats += 1
-          
-              if re.search(EXCLUDE_PATTERN, line, re.IGNORECASE) or 'dlpfe-ci' in line:
-                  continue
-          
-              filtered_changelog.append(f"- {line}")
-          
-          # Base-12 calculation: 12 fixes = 1 minor, 12 feats = 1 major
-          patch = fixes % 12
-          total_minor = (fixes // 12) + feats
-          minor = total_minor % 12
-          major = total_minor // 12
-          
-          # Generate tag suffix
-          suffix = f"-{STAGE}" if STAGE else ""
-          new_tag = f"v{major}.{minor}.{patch}{suffix}"
-          is_prerelease = bool(STAGE)
-          
-          # Construct markdown body
-          changelog_body = "### What's Changed\n\n"
-          if filtered_changelog:
-              changelog_body += "\n".join(filtered_changelog)
-          else:
-              changelog_body += "Maintenance updates and minor fixes."
-          
-          # Output variables to GitHub Actions
-          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as f:
-              f.write(f"new_tag={new_tag}\n")
-              f.write(f"is_prerelease={'true' if is_prerelease else 'false'}\n")
-          
-          with open("CHANGELOG.md", "w", encoding="utf-8") as f:
-              f.write(changelog_body)
-
-      - name: Determine Release Tag Name
-        id: tag_name
-        shell: pwsh
-        run: |
-          if ("${{ steps.auto_tag.outputs.new_tag }}" -ne "") {
-              $tag = "${{ steps.auto_tag.outputs.new_tag }}"
-          } else {
-              $rawTag = "${{ github.ref_name }}"
-              $tag = $rawTag -replace '[\\/:*?"<>|]', '-'
-          }
-          Write-Output "RELEASE_TAG=$tag" >> $env:GITHUB_ENV
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
-          python-version: "3.11"
-          cache: "pip"
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+            requirements-build.txt
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pyinstaller
+      - name: Install test and build dependencies
+        run: python -m pip install -r requirements-dev.txt -r requirements-build.txt
 
-      - name: Build executable
-        run: |
-          pyinstaller main.spec --noconfirm
+      - name: Run test suite
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: python -m pytest --cov=src --cov-report=term-missing
 
-      - name: Rename Executable
+      - name: Build portable Windows bundle
+        run: python -m PyInstaller main.spec --noconfirm --clean
+
+      - name: Smoke-test packaged executable
         shell: pwsh
         run: |
-          $tag = "$env:RELEASE_TAG"
-          $exe = Get-ChildItem -Path dist -Filter "*.exe" | Select-Object -First 1
-          if ($exe) {
-              Rename-Item -Path $exe.FullName -NewName "yt_dlp_fe-$tag.exe"
+          $fakeBin = Join-Path $env:RUNNER_TEMP "dlpfe-fake-bin"
+          New-Item -ItemType Directory -Path $fakeBin -Force | Out-Null
+
+          "@echo off`r`nexit /b 0`r`n" | Set-Content -Path (Join-Path $fakeBin "yt-dlp.cmd") -Encoding Ascii
+          "@echo off`r`nexit /b 0`r`n" | Set-Content -Path (Join-Path $fakeBin "ffmpeg.cmd") -Encoding Ascii
+
+          $env:PATH = "$fakeBin;$env:PATH"
+
+          $exe = (Resolve-Path "dist/yt_dlp_fe/yt_dlp_fe.exe").Path
+          $process = Start-Process -FilePath $exe -PassThru
+
+          try {
+              Start-Sleep -Seconds 8
+              $process.Refresh()
+              if ($process.HasExited) {
+                  throw "Packaged executable exited during startup with code $($process.ExitCode)."
+              }
+          }
+          finally {
+              $process.Refresh()
+              if (-not $process.HasExited) {
+                  Stop-Process -Id $process.Id -Force
+              }
           }
 
-      - name: Upload Windows Executable Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: yt-dlp-gui-windows
-          path: dist/*.exe
-          if-no-files-found: error
+      - name: Package portable bundle
+        shell: pwsh
+        run: |
+          $package = "dist/$env:PACKAGE_BASENAME.zip"
+          if (Test-Path $package) {
+              Remove-Item $package -Force
+          }
+          Compress-Archive -Path "dist/yt_dlp_fe/*" -DestinationPath $package -CompressionLevel Optimal
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        if: steps.auto_tag.outputs.new_tag != '' || startsWith(github.ref, 'refs/tags/')
+      - name: Upload Windows bundle artifact
+        uses: actions/upload-artifact@v7
         with:
-          tag_name: ${{ steps.auto_tag.outputs.new_tag || github.ref_name }}
-          files: dist/*.exe
-          body_path: CHANGELOG.md
+          name: ${{ env.ARTIFACT_NAME }}
+          path: dist/${{ env.PACKAGE_BASENAME }}.zip
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+  release-metadata:
+    name: Resolve release metadata
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      release_tag: ${{ steps.metadata.outputs.release_tag }}
+      is_prerelease: ${{ steps.metadata.outputs.is_prerelease }}
+      should_release: ${{ steps.metadata.outputs.should_release }}
+      changelog: ${{ steps.metadata.outputs.changelog }}
+
+    steps:
+      - name: Checkout release history
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Calculate release metadata
+        id: metadata
+        shell: python
+        run: |
+          import os
+          import re
+          import subprocess
+
+          stage = "alpha"
+          reset_point = None
+          ref = os.environ["GITHUB_REF"]
+
+          git_cmd = ["git", "log", "--pretty=format:%h %s"]
+          if reset_point:
+              git_cmd.append(f"{reset_point}..HEAD")
+
+          log_lines = subprocess.check_output(git_cmd, text=True).splitlines()
+          fixes = 0
+          feats = 0
+          changelog_entries = []
+          exclude = re.compile(r'^\w+\s+(docs|chore|style|refactor|test|ci)(\(.*?\))?:', re.IGNORECASE)
+
+          for line in log_lines:
+              if re.search(r'\bfix(?:\(.*?\))?:', line):
+                  fixes += 1
+              if re.search(r'\bfeat(?:\(.*?\))?:', line):
+                  feats += 1
+              if not exclude.search(line) and 'dlpfe-ci' not in line:
+                  changelog_entries.append(f"- {line}")
+
+          if ref.startswith("refs/tags/"):
+              release_tag = os.environ["GITHUB_REF_NAME"]
+              should_release = True
+          else:
+              patch = fixes % 12
+              total_minor = (fixes // 12) + feats
+              minor = total_minor % 12
+              major = total_minor // 12
+              suffix = f"-{stage}" if stage else ""
+              release_tag = f"v{major}.{minor}.{patch}{suffix}"
+              tag_exists = subprocess.run(
+                  ["git", "rev-parse", "-q", "--verify", f"refs/tags/{release_tag}"],
+                  stdout=subprocess.DEVNULL,
+                  stderr=subprocess.DEVNULL,
+              ).returncode == 0
+              should_release = not tag_exists
+
+          is_prerelease = bool(re.search(r'-[0-9A-Za-z]', release_tag))
+          changelog = "### What's Changed\n\n" + (
+              "\n".join(changelog_entries)
+              if changelog_entries
+              else "Maintenance updates and minor fixes."
+          )
+
+          delimiter = "DLPFE_CHANGELOG_EOF"
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"release_tag={release_tag}\n")
+              output.write(f"is_prerelease={'true' if is_prerelease else 'false'}\n")
+              output.write(f"should_release={'true' if should_release else 'false'}\n")
+              output.write(f"changelog<<{delimiter}\n{changelog}\n{delimiter}\n")
+
+  release:
+    name: Publish GitHub release
+    needs: [windows-build, release-metadata]
+    if: needs.release-metadata.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download Windows bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: release
+
+      - name: Publish release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.release-metadata.outputs.release_tag }}
+          IS_PRERELEASE: ${{ needs.release-metadata.outputs.is_prerelease }}
+          RELEASE_NOTES: ${{ needs.release-metadata.outputs.changelog }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          source_asset="release/${PACKAGE_BASENAME}.zip"
+          release_asset="release/yt_dlp_fe-${RELEASE_TAG}-windows-x64.zip"
+          mv "$source_asset" "$release_asset"
+          printf '%s\n' "$RELEASE_NOTES" > CHANGELOG.md
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+              gh release upload "$RELEASE_TAG" "$release_asset" --clobber
+              exit 0
+          fi
+
+          if [[ "$IS_PRERELEASE" == "true" ]]; then
+              gh release create "$RELEASE_TAG" "$release_asset" \
+                  --target "$GITHUB_SHA" \
+                  --title "$RELEASE_TAG" \
+                  --notes-file CHANGELOG.md \
+                  --prerelease
+          else
+              gh release create "$RELEASE_TAG" "$release_asset" \
+                  --target "$GITHUB_SHA" \
+                  --title "$RELEASE_TAG" \
+                  --notes-file CHANGELOG.md
+          fi
