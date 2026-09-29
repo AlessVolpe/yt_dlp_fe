@@ -195,6 +195,7 @@ jobs:
       - name: Publish release asset
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ needs.release-metadata.outputs.release_tag }}
           IS_PRERELEASE: ${{ needs.release-metadata.outputs.is_prerelease }}
           RELEASE_NOTES: ${{ needs.release-metadata.outputs.changelog }}
