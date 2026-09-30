@@ -32,8 +32,9 @@ yt_dlp_fe/
 │   │   │   ├── url_validation/
 │   │   │   │    ├── __init__.py              # empty, matching the bll/guis/loggers/config convention
 │   │   │   │    ├── url_category.py          # UrlCategory enum
+│   │   │   │    ├── url_parser.py            # Safe urllib parsing + host normalization
 │   │   │   │    ├── validation_result.py     # ValidationResult dataclass (imports UrlCategory)
-│   │   │   │    └── url_validator.py         # validate_url() + classification logic (imports both)
+│   │   │   │    └── url_validator.py         # validate_url() + YouTube classification logic
 │   │   │   ├── __init__.py
 │   │   │   ├── format_converter.py   # Converts a downloaded file via ffmpeg (.webm -> .wav/.mp4)
 │   │   │   ├── process_worker.py     # Background QThread: runs a command, logs output live
@@ -116,9 +117,9 @@ CI workflows to enforce this automatically are coming soon.
 Known defects are tracked by strict `xfail` tests under classes named
 `TestKnownDefects`. Remove an `xfail` only after its regression test passes normally.
 
-- [ ] Harden URL parsing against malformed netlocs. `validate_url()` should handle
-  `ValueError` from `urllib.parse.urlparse()` and return `UrlCategory.INVALID`
-  with a user-facing validation error instead of raising.
+- [x] Harden URL parsing against malformed netlocs. Parsing now contains
+  `ValueError` from `urllib.parse.urlparse()` behind a dedicated parser boundary,
+  and `validate_url()` returns `UrlCategory.INVALID` with a user-facing error.
 - [ ] Keep the main window alive after startup handover. `ProgressWindow._finish()`
   should retain an owning reference to the created `UserInterface` so garbage
   collection cannot destroy the visible window.

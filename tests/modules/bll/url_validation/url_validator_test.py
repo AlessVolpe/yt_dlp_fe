@@ -5,8 +5,7 @@ Coverage strategy:
 * exhaustive example tables for every accepted, unsupported and invalid URL
   shape (including host-spoofing attempts),
 * structural invariants of `ValidationResult` checked over all examples,
-* property-based tests (Hypothesis) for totality and ID handling,
-* strict ``xfail`` tests documenting known defects.
+* property-based tests (Hypothesis) for totality and ID handling.
 """
 from __future__ import annotations
 
@@ -17,7 +16,7 @@ import pytest
 from hypothesis import given, strategies as st
 
 from modules.bll.url_validation.url_category import UrlCategory
-from modules.bll.url_validation.url_validator import _normalize_host, validate_url
+from modules.bll.url_validation.url_validator import validate_url
 from modules.bll.url_validation.validation_result import ValidationResult
 
 VID = "dQw4w9WgXcQ"
@@ -237,24 +236,30 @@ class TestInvalid:
 
 
 @pytest.mark.unit
-class TestNormalizeHost:
+class TestMalformedNetlocs:
     @pytest.mark.parametrize(
-        ("netloc", "expected"),
+        "url",
         [
-            ("youtube.com", "youtube.com"),
-            ("WWW.YouTube.com:443", "youtube.com"),
-            ("m.youtube.com", "youtube.com"),
-            ("user:pw@www.youtube.com", "youtube.com"),
-            ("music.youtube.com", "music.youtube.com"),
-            ("youtu.be", "youtu.be"),
-            ("www.m.youtube.com", "m.youtube.com"),
-            ("evil.com@youtube.com", "youtube.com"),
-            ("youtube.com@evil.com", "evil.com"),
-            ("", ""),
+            "https://[abc",
+            "http://[::1",
+            "[",
+            "https://youtube.com[/watch?v=" + VID,
+            "https://\u2100.com",
+        ],
+        ids=[
+            "unclosed-bracket",
+            "unclosed-ipv6",
+            "lone-bracket",
+            "bracket-after-host",
+            "nfkc-invalid-netloc",
         ],
     )
-    def test_reduces_to_bare_lowercase_host(self, netloc: str, expected: str) -> None:
-        assert _normalize_host(netloc) == expected
+    def test_reported_as_invalid_instead_of_raising(self, url: str) -> None:
+        result = validate_url(url)
+
+        assert result.category is UrlCategory.INVALID
+        assert url in (result.error_message or "")
+        assert not result.is_valid
 
 
 @pytest.mark.unit
@@ -274,8 +279,8 @@ class TestInvariants:
 
 @pytest.mark.unit
 class TestProperties:
-    @given(st.text(alphabet=st.characters(codec="ascii", blacklist_characters="[]")))
-    def test_total_over_ascii_text_without_brackets(self, raw: str) -> None:
+    @given(st.text(alphabet=st.characters(codec="ascii")))
+    def test_total_over_ascii_text(self, raw: str) -> None:
         assert_invariants(validate_url(raw))
 
     @given(st.text(alphabet=ID_ALPHABET, min_size=11, max_size=11))
@@ -298,19 +303,4 @@ class TestProperties:
     @given(st.text(alphabet=ID_ALPHABET, min_size=1, max_size=40), st.sampled_from(["youtube.com", "youtu.be"]))
     def test_hosts_embedding_a_trusted_name_but_not_ending_in_it_are_rejected(self, label: str, trusted: str) -> None:
         url = f"https://{trusted}.{label.lower()}.example/watch?v={VID}"
-        assert validate_url(url).category is UrlCategory.INVALID
-
-
-@pytest.mark.unit
-class TestKnownDefects:
-    @pytest.mark.xfail(
-        raises=ValueError,
-        reason="validate_url does not guard urlparse: malformed netlocs raise instead of yielding INVALID",
-    )
-    @pytest.mark.parametrize(
-        "url",
-        ["https://[abc", "http://[::1", "[", "https://youtube.com[/watch?v=" + VID, "https://\u2100.com"],
-        ids=["unclosed-bracket", "unclosed-ipv6", "lone-bracket", "bracket-after-host", "nfkc-invalid-netloc"],
-    )
-    def test_malformed_netloc_is_reported_as_invalid_instead_of_raising(self, url: str) -> None:
         assert validate_url(url).category is UrlCategory.INVALID

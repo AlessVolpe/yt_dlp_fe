@@ -11,9 +11,10 @@ error several seconds later.
 from __future__ import annotations
 
 import re
-from urllib.parse import ParseResult, parse_qs, urlparse
+from urllib.parse import ParseResult, parse_qs
 
 from modules.bll.url_validation.url_category import UrlCategory
+from modules.bll.url_validation.url_parser import normalize_host, parse_url
 from modules.bll.url_validation.validation_result import ValidationResult
 
 # A YouTube video ID is exactly 11 characters drawn from this alphabet.
@@ -55,17 +56,14 @@ def validate_url(raw_url: str) -> ValidationResult:
             error_message="Paste a URL before starting a download."
         )
 
-    if "://" not in url:
-        url = f"https://{url}"
-
-    parsed = urlparse(url)
-    if parsed.scheme not in ("http", "https") or not parsed.netloc:
+    parsed = parse_url(url)
+    if parsed is None or parsed.scheme not in ("http", "https") or not parsed.netloc:
         return ValidationResult(
             UrlCategory.INVALID,
             error_message=f"'{raw_url}' is not a valid URL."
         )
 
-    host = _normalize_host(parsed.netloc)
+    host = normalize_host(parsed.netloc)
 
     if host == "youtu.be":
         return _classify_youtu_be(parsed, raw_url)
@@ -77,29 +75,6 @@ def validate_url(raw_url: str) -> ValidationResult:
         UrlCategory.INVALID,
         error_message=f"'{raw_url}' does not look like a YouTube link."
     )
-
-
-def _normalize_host(netloc: str) -> str:
-    """
-    Reduce a URL's netloc to a bare, lowercase comparison host.
-
-    Strips any userinfo/port and the common `www.`/`m.` prefix, so
-    `WWW.YouTube.com:443` and `m.youtube.com` both normalize to
-    `youtube.com`. Using an exact/suffix comparison against this
-    normalized value (rather than a substring check) is what keeps
-    lookalike hosts such as `youtube.com.evil.net` from validating.
-
-    Args:
-        netloc (str): The raw netloc component from `urlparse`.
-
-    Returns:
-        str: The normalized host.
-    """
-    host = netloc.rsplit("@", 1)[-1].split(":", 1)[0].lower()
-    for prefix in ("www.", "m."):
-        if host.startswith(prefix):
-            return host[len(prefix):]
-    return host
 
 
 def _classify_youtu_be(parsed: ParseResult, raw_url: str) -> ValidationResult:
