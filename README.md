@@ -83,7 +83,7 @@ yt_dlp_fe/
 2. Create and activate a virtual environment:
    ```bash
    python -m venv .venv
-   source .venv/bin/activate      # Windows: .venv\Scripts\activate
+   source .venv/bin/activate      # Windows: .venv\scripts\activate
    ```
 
 3. Install dependencies:
