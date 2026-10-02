@@ -1,7 +1,6 @@
 """Tests for ``modules.guis.progress_window.ProgressWindow``."""
 from __future__ import annotations
 
-import gc
 import os
 import subprocess
 import sys

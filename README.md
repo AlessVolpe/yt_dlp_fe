@@ -4,7 +4,7 @@ A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built 
 
 ## Status
 
-🚧 **Active development.** The app validates a pasted URL before ever spawning `yt-dlp`, downloads audio and video (including full playlists, detected automatically) via real `yt-dlp` subprocess calls, streams `yt-dlp`'s own output into the activity log in real time, converts downloaded files with `ffmpeg`, and checks for `yt-dlp` updates on startup before the main window appears.
+🚧 **Final alpha stabilization** The app validates a pasted URL before ever spawning `yt-dlp`, downloads audio and video (including full playlists, detected automatically) via real `yt-dlp` subprocess calls, streams `yt-dlp`'s own output into the activity log in real time, converts downloaded files with `ffmpeg`, and checks for `yt-dlp` updates on startup before the main window appears.
 
 ## Features
 
@@ -23,6 +23,8 @@ A lightweight desktop GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built 
 yt_dlp_fe/
 ├── .github/                          # CI workflow configs
 ├── assets/                           # Icons / static resources (e.g. for packaging)
+├── scripts/
+│   └── smoke_test_windows.ps1        # PowerShell startup smoke test using real external tools 
 ├── src/
 │   ├── config/
 │   │   ├── __init__.py
@@ -110,19 +112,30 @@ PR titles should follow the same conventional-commit format (`type(scope): descr
 
 Use the `dlpfe-ci` scope for CI-related PRs and commits, and `dlpfe` for everything else.
 
-CI workflows to enforce this automatically are coming soon.
+CI workflows enforce these conventions automatically on pull requests.
 
 ## Roadmap
 
-Known defects are tracked by strict `xfail` tests under classes named
-`TestKnownDefects`. Remove an `xfail` only after its regression test passes normally.
+Regression policy: confirmed known defects may be captured by strict `xfail` tests
+under classes named `TestKnownDefects`. Once fixed, remove the `xfail` and keep
+the test as a normal regression test under a descriptive class.
 
-- [x] Harden URL parsing against malformed netlocs. Parsing now contains
+All alpha-blocking known defects are resolved; this closes the alpha roadmap.
+
+### Alpha completion
+
+- [x] Harden URL parsing against malformed netlocs. Parsing contains
   `ValueError` from `urllib.parse.urlparse()` behind a dedicated parser boundary,
   and `validate_url()` returns `UrlCategory.INVALID` with a user-facing error.
-- [ ] Keep the main window alive after startup handover. `ProgressWindow._finish()`
-  should retain an owning reference to the created `UserInterface` so garbage
-  collection cannot destroy the visible window.
+- [x] Keep the main window alive after startup handover. `ProgressWindow._finish()`
+  retains an owning reference to the created `UserInterface`, and the regression
+  suite explicitly forces garbage collection after handover.
+
+### Beta
+
+- [ ] Migrate the runtime and CI baseline to the latest supported Python version.
+- [ ] Replace the PyInstaller packaging path with `pyside6-deploy` / Nuitka after
+  the Python migration is stable, keeping the Windows build reproducible.
 
 ## License
 
